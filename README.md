@@ -1,12 +1,13 @@
 # Cyber LLM Benchmarks Hackathon
 
-# Hackathon Contests
+Three (3) different contests:
 
 ## A) Short Answer Question (SAQ) Contest
 
-**Goal** – Generate a high-quality dataset of 2000 Short Answer Questions (SAQs) spanning multiple cybersecurity domains.
+**Goal** 
+– Generate a high-quality dataset of 2000 Short Answer Questions (SAQs) spanning multiple cybersecurity domains.
 
-**Domains** –  
+**Domains**  
 - Security compliance and certifications  
 - Product security guidelines  
 - Data security  
@@ -43,7 +44,8 @@ The core concept of the challenge is to discover the toughest cybersecurity ques
 
 ## B) Reasoning Models Contest  
 
-**Goal** – We currently have a high-quality Multiple-Choice Question and Answer (MCQA) dataset, including explanations for each answer. This contest aims to verify whether these explanations are correct.  
+**Goal** 
+– We currently have a high-quality Multiple-Choice Question and Answer (MCQA) dataset, including explanations for each answer. This contest aims to verify whether these explanations are correct.  
 
 ### Contest Theme  
 **“Explanations Under Fire—Fact-Check the MCQA”**  
@@ -68,7 +70,9 @@ Each participant becomes a **“Security Explanation Detective”**, investigati
 
 ## C) Unique Dataset Contest  
 
-**Goal** – Synthetically create benchmarks reflecting tasks currently performed by cybersecurity professionals. Each dataset should contain **<100 examples** for a task that participants find particularly challenging.  
+**Goal** 
+
+– Synthetically create benchmarks reflecting tasks currently performed by cybersecurity professionals. Each dataset should contain **<100 examples** for a task that participants find particularly challenging.  
 
 ### Example  
 The **CTI-ATE** benchmark dataset focuses on **Attack Technique Extraction**. The task involves identifying specific attack patterns from a given threat behavior description and mapping them to the corresponding **MITRE ATT&CK** technique IDs. The **Micro-F1 score** is used as the evaluation metric for this task.  
@@ -92,6 +96,6 @@ Participants are encouraged to identify repetitive, dull, or particularly vexing
 
 
 ## Hosts and Participants
-– Hosts: Omar Santos, Dhruv Kedia, Paul Kassianik, Baturay Saglam, Casey Hall, and Naveen Sanku (Cisco Robust Intelligence)
+- Hosts: Omar Santos, Dhruv Kedia, Paul Kassianik, Baturay Saglam, Casey Hall, and Naveen Sanku (Cisco / Robust Intelligence)
 - Participants: Cisco S&TO and wider Cybersecurity community
 - Data: Public and open-source.
