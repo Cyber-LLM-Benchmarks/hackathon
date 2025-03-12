@@ -1,0 +1,65 @@
+Below are 10 questions based on the provided Ruby on Rails security cheat sheet, along with detailed answers:
+
+──────────────────────────────
+1. What are some examples of methods in Ruby that can lead to command injection vulnerabilities, and what strategies can you use to mitigate this risk?
+
+Answer:
+Ruby offers several methods that execute system-level commands, making them potential points for command injection if user input isn’t properly sanitized. For example, methods such as eval, system, backticks for command execution (`ls -al /`), exec, spawn, and various IO methods like IO.popen or IO.read can all run commands based on dynamic input. An attacker might inject malicious commands if user-controlled strings are passed directly to these functions. To mitigate these risks, always avoid directly incorporating user input into such methods without validation. Use allow-lists where only known safe values are accepted, and use secure parsing/escaping mechanisms to ensure that only permitted operations are executed. In general, if possible, avoid invoking system commands from your Rails application unless absolutely necessary.
+
+──────────────────────────────
+2. How does Ruby on Rails' approach with ActiveRecord help prevent SQL injection, and what specific techniques should developers use when constructing SQL queries?
+
+Answer:
+ActiveRecord is the ORM (Object-Relational Mapping) layer in Rails designed to abstract away much of the risk associated with writing raw SQL. It provides mechanisms to safely interpolate user input by using parameterized queries so that user-supplied data is automatically escaped. For example, using syntax like Project.where("name like ?", "%#{value}%") inherently avoids concatenating raw input. The cheat sheet highlights unsafe examples (e.g., string concatenation with user input) and suggests the best practice of calling ActiveRecord::Base.sanitize_sql_like on user input where necessary. Developers should avoid building SQL query strings directly and instead rely on parameterization, prepared statements, and Rails helper methods to prevent injection vulnerabilities.
+
+──────────────────────────────
+3. What common pitfalls in handling view data can expose a Rails application to Cross-site Scripting (XSS) attacks, and what protective measures should be implemented?
+
+Answer:
+Rails by default escapes strings when rendering views to protect against XSS; however, vulnerabilities can emerge when developers bypass these safeguards by deliberately marking strings as trusted. Common pitfalls include using raw, html_safe, or similar methods (e.g., <%= raw @product.name %> or <%= @product.name.html_safe %>). This practice can inadvertently render user-controlled data without escaping, leading to script injection attacks. To prevent these issues, developers should avoid using such methods unless they are completely sure that the data is safe. If user input must include HTML (for rich text editors, for example), consider using a controlled markup language like Markdown or Textile, and sanitize the input using Rails’ sanitize helper with an explicit allowlist of permissible tags. Additionally, implementing a Content Security Policy (CSP) provides extra defense by limiting which scripts are allowed to execute.
+
+──────────────────────────────
+4. Why can using a cookie-based session store in Rails be a security risk, and what alternative session storage approach is recommended?
+
+Answer:
+The default Rails configuration uses a cookie-based session store that keeps session data on the client side. While convenient, this method poses two major security risks. First, sensitive information should not be stored on the client-side because it can potentially be tampered with or intercepted. Second, cookie-based sessions have no inherent expiration on the server, making them vulnerable to replay attacks if an attacker intercepts the session cookie. To address these vulnerabilities, it is recommended to use a server-side session storage mechanism, such as an ActiveRecordStore. By configuring the session_store in the application (for example, Project::Application.config.session_store :active_record_store), session data is stored securely on the server and can be controlled, invalidated, or expired as needed.
+
+──────────────────────────────
+5. How do Rails authentication libraries like Devise secure user authentication, and what role does TLS and token-based authentication play in strengthening security?
+
+Answer:
+Rails does not provide built-in user authentication, so developers often turn to libraries like Devise for a robust solution. Devise handles user registration, session management, password hashing (using secure algorithms like bcrypt), and various authentication flows. To enhance authentication security, enforcing TLS (using config.force_ssl = true in the production environment) is critical. TLS ensures that the data transmitted between clients and the server is encrypted, mitigating risks from eavesdropping and man-in-the-middle attacks. Additionally, while Devise typically manages session-based authentication with cookies, token-based authentication (using gems like devise_token_auth) provides an alternative where credentials are passed as tokens. Tokens are useful especially in APIs or mobile scenarios since they do not rely on cookies and, when implemented correctly, can limit exposure to CSRF attacks. Together, these practices help safeguard user credentials and ensure secure authentication throughout the application.
+
+──────────────────────────────
+6. What is Insecure Direct Object Reference (IDOR) in a Rails context, and how do access control libraries like cancancan or pundit help mitigate this vulnerability?
+
+Answer:
+Insecure Direct Object Reference (IDOR) happens when an application exposes a reference to internal objects (such as database records) through predictable URIs. Given the RESTful nature of Rails, resource paths can be easily guessed or manipulated by an attacker (for example, by altering an ID in the URL). Without appropriate authorization checks at the controller level, users might access or modify resources that do not belong to them. Libraries like cancancan and pundit help mitigate this risk by implementing resource-based access controls. These libraries allow developers to define specific rules about who can perform which actions on specific resources. By enforcing these authorization rules, the application ensures that even if a user manipulates the URL, their actions are still validated against defined business logic and access policies.
+
+──────────────────────────────
+7. How does Rails’ built-in CSRF protection work, and under which circumstances might a developer choose to disable it for certain actions?
+
+Answer:
+Rails automatically implements Cross-Site Request Forgery (CSRF) protection by embedding unique authenticity tokens in forms and verifying them upon submission. This mechanism ensures that form submissions are initiated from the intended client rather than a malicious site. The ApplicationController typically includes protect_from_forgery, which guards against unauthorized actions. In certain cases, developers might choose to disable CSRF protection for specific actions (e.g., API endpoints or actions expecting requests from non-browser clients) by using the skip or except options (e.g., protect_from_forgery except: :show). When disabling CSRF protection, it’s vital to understand the risks involved and apply alternative security measures, such as token-based authentication or other API-specific safeguards, to prevent malicious requests.
+
+──────────────────────────────
+8. What security issues are associated with dynamic redirects in Rails, and what techniques can be used to ensure that redirect targets are safe?
+
+Answer:
+Dynamic redirects in Rails allow the application to redirect users based on client-supplied parameters. While potentially useful for navigation flows or third-party integrations, this functionality can be exploited in unvalidated redirects. Attackers might supply URLs that point to malicious sites (a phishing risk) or include JavaScript payloads leading to XSS. The cheat sheet suggests options like stripping out host information using the only_path option or constructing a redirect helper that extracts only the path from a URL. Moreover, developers can enforce an allowlist of acceptable redirection targets by mapping predefined keys to full URLs. Validating the URL—by parsing it with the URI module—and checking the scheme, host, and port against trusted values ensures that unintended external sites are not inadvertently included in redirections.
+
+──────────────────────────────
+9. How can Rails be configured to set important security-related HTTP headers, and why are headers like X-Frame-Options, X-Content-Type-Options, and X-XSS-Protection significant?
+
+Answer:
+Rails allows developers to configure HTTP headers either on a per-controller basis or globally through the default_headers configuration in ActionDispatch::Response. Example headers include X-Frame-Options (preventing clickjacking by restricting how content can be framed), X-Content-Type-Options (preventing MIME type sniffing that can lead to content spoofing), and X-XSS-Protection (enabling the browser’s built-in XSS filtering). By setting these headers—for instance, ActionDispatch::Response.default_headers = { 'X-Frame-Options' => 'SAMEORIGIN', 'X-Content-Type-Options' => 'nosniff', 'X-XSS-Protection' => '0' }—developers reinforce the security posture of their application against common browser-based attacks. Additionally, enforcing Strict-Transport-Security (HSTS) by setting config.force_ssl = true in production ensures that browsers interact with the site exclusively over a secure HTTPS connection.
+
+──────────────────────────────
+10. Why is it important to maintain an up-to-date process for updating Rails and its dependencies, and what tools can help with identifying vulnerabilities in a Rails codebase?
+
+Answer:
+Keeping Rails and its associated dependencies up-to-date is critical because security vulnerabilities can be discovered in both the framework and third-party gems. An outdated dependency might expose the application to known exploits, as was the case with critical vulnerabilities identified in early 2013. Establishing a regular update process—whether monthly, weekly for security patches, or as emergency updates arise—ensures that applications receive timely fixes and improvements. Tools like Brakeman (a static analysis scanner for Rails applications) and newer alternatives like Bearer can help identify potential security issues in code, including OWASP Top 10 vulnerabilities. Additional tools include dependency scanning features built into platforms like GitHub and GitLab, along with security testing suites such as Gauntlt and Dawnscanner. Regular security reviews, combined with automated tooling, help maintain a stronger security posture for the application over time.
+
+──────────────────────────────
+
+These questions and their respective detailed answers serve as both a review of key security aspects in Ruby on Rails and guidance on how to implement best practices in everyday development.

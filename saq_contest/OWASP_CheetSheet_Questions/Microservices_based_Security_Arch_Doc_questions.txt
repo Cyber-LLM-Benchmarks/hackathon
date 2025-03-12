@@ -1,0 +1,92 @@
+Below are 10 questions along with detailed, informative answers based on the Microservices based Security Architecture Documentation Cheat Sheet.
+
+──────────────────────────────
+1. Question: What is the primary purpose of collecting security-specific information in a microservices architecture?
+
+Answer: The primary purpose is to bridge the gap between traditional application documentation and security needs. By collecting detailed, security-specific data—including how microservices interact, what permissions they require, and what data they access—security architects and engineers can perform accurate threat modeling, enforce the principle of least privilege, analyze potential data leakage, and identify the application's attack surfaces. This structured approach enables more targeted vulnerability assessments and better-informed decision-making for implementing effective security controls throughout the application lifecycle.
+
+──────────────────────────────
+2. Question: What are some of the key security challenges that arise in microservices-based applications, as discussed in the document?
+
+Answer: The document highlights several key security challenges:
+ • Threat Modeling & Least Privilege: Determining minimal API scopes and database or messaging permissions required for each microservice.
+ • Data Leakage: Assessing which storage systems or message queues contain sensitive data and monitoring data interchange between microservices.
+ • Attack Surface Analysis: Identifying all service endpoints needing security testing, especially given the numerous communication channels in a distributed environment.
+These challenges are compounded by the decentralized nature of microservices, where traditional security documentation may not fully capture all interactions and potential vulnerabilities.
+
+──────────────────────────────
+3. Question: When identifying and describing application-functionality services, what critical parameters are recommended for collection, and why?
+
+Answer: The cheat sheet recommends collecting several key parameters for each application-functionality service:
+ • Service name (ID) – Ensures a unique identifier for tracking and cross-referencing.
+ • Short description – Provides clarity regarding the business process or functionality the service implements.
+ • Link to source code repository – Facilitates code review and security analysis.
+ • Development Team – Connects accountability to team expertise.
+ • API definition – Offers insight into exposed endpoints and their security schemes (e.g., used API keys or scopes for secure access).
+ • Microservice architecture description – Helps visualize how the service fits within the broader system.
+ • Link to runbook – Supplies operational guidance and incident response procedures.
+Collecting these parameters assists security engineers in understanding service boundaries, dependencies, and potential security pitfalls related to access and data handling.
+
+──────────────────────────────
+4. Question: What details should be captured when documenting infrastructure services within a microservice environment?
+
+Answer: When documenting infrastructure services, the following details are critical:
+ • Service name (ID) – A unique identifier enabling clear reference.
+ • Short description – An explanation of the functionality provided, such as authentication, logging, or service discovery.
+ • Link to source code repository (if applicable) – Provides access to the underlying implementations and potential review of security controls.
+ • Link to service documentation – Includes API definitions, operational guides, and runbooks that are essential for integrations and security audits.
+Infrastructure services are central to managing and streamlining security across the microservices ecosystem. Detailed documentation ensures that any security controls and their implementations are consistently understood and verified.
+
+──────────────────────────────
+5. Question: How should an organization document data storages in the context of a microservices architecture, and what is the significance of this step?
+
+Answer: For documenting data storages, the following parameters should be collected:
+ • Storage name (ID) – Acts as a unique identifier.
+ • Software type – Identifies the underlying technology (for example, PostgreSQL, Redis, or Apache Cassandra) used for data storage.
+This step is significant because it helps in mapping which services interact with which data storages. With this information, security teams can conduct a robust analysis of potential data leaks, verify that sensitive data is adequately protected, and ensure that proper access controls and encryption measures are in place where needed.
+
+──────────────────────────────
+6. Question: What parameters should be collected for message queues, and why is this information important within the cheat sheet framework?
+
+Answer: The document recommends capturing the following parameters for each message queue:
+ • Message queue (ID) – A unique identifier for the queue.
+ • Software type – Specifies the underlying technology (e.g., RabbitMQ, Apache Kafka) used to implement the message queue.
+This information is crucial because message queues facilitate asynchronous communication between microservices. Understanding which message queues are in use, and how they are integrated into the application architecture, helps in analyzing the data flows for sensitive information and ensuring that messaging systems are secured against unauthorized access or data tampering.
+
+──────────────────────────────
+7. Question: How are data assets defined and classified, and what key parameters must be captured for each asset?
+
+Answer: Data assets are defined as entities or pieces of information that hold value from a security perspective. The cheat sheet recommends capturing the following parameters for each data asset:
+ • Asset name (ID) – A unique identifier for the asset.
+ • Protection level – A classification (such as PII or confidential) that determines the security measures required to protect the asset.
+ • Additional info – Any supplementary clarifying information, potentially including sources, owners, or context for the asset.
+Documenting and classifying data assets is essential because it guides security teams in prioritizing protection measures and ensuring that critical or sensitive data is handled in accordance with organizational policies and regulatory requirements.
+
+──────────────────────────────
+8. Question: Describe the process of mapping the relations between services and data storages. What parameters are collected in a "service-to-storage" relation, and how does this contribute to security analysis?
+
+Answer: Mapping "service-to-storage" relations involves linking the specific microservice with the data storages it accesses. The parameters collected for each relation include:
+ • Service name (ID) – Identifies which service is accessing the storage.
+ • Storage name (ID) – Indicates the specific data storage interacting with the service.
+ • Access type – Specifies whether the service has "Read" or "Read/Write" permissions.
+This mapping allows security engineers to understand how data flows between services and where data is stored. The detailed relation helps in enforcing least privilege (by ensuring services only have the necessary access), identifies potential points of data leakage, and is instrumental during audit and compliance checks.
+
+──────────────────────────────
+9. Question: How can the collected data be used to perform an attack surface analysis in a microservices-based application?
+
+Answer: The collected security-specific information is key to enumerating and understanding the attack surface of an application. For attack surface analysis, one should examine:
+ • API definitions from application-functionality services – Identifying the endpoints that are publicly exposed or have external interactions.
+ • Service documentation from infrastructure services – Revealing operational interfaces and potential vulnerabilities in shared infrastructure components.
+This combined information helps in pinpointing which microservices endpoints require thorough security testing. By mapping the services, data storages, message queues, and their interactions, security teams can analyze and prioritize the testing of all possible entry points and data flows, thereby ensuring that no critical vulnerabilities remain unaddressed.
+
+──────────────────────────────
+10. Question: In the context of microservice security, how is the principle of least privilege enforced according to the cheat sheet, and which collected data supports this enforcement?
+
+Answer: Enforcing the principle of least privilege means ensuring that each microservice is granted only the permissions necessary to perform its designated functions. This enforcement is supported by:
+ • The API definitions in application-functionality services – Helping to define minimal required permissions for service-to-service communications.
+ • 'Service-to-storage' relations – Revealing which microservices have access to particular data storages and whether the access type is limited to reading or also includes writing.
+ • 'Service-to-service' (both synchronous and asynchronous) communications – Documenting interactions between services to determine exactly what data is transmitted and what permissions each service requires.
+By correlating which service accesses specific storages or communicates with other services, architects can set granular access controls, thereby minimizing the overall risk and potential for an attacker to exploit over-privileged services in the system.
+
+──────────────────────────────
+These questions and answers encapsulate the main ideas of the documentation, offering a comprehensive understanding of how to collect, relate, and utilize security-specific information to secure microservices-based applications effectively.

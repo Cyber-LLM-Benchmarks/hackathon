@@ -1,0 +1,77 @@
+Below are 10 questions based on the provided Query Parameterization Cheat Sheet, each with a detailed answer.
+
+─────────────────────────────
+
+1. What is SQL Injection and why is it considered a dangerous web vulnerability?
+
+SQL Injection is an attack technique where an attacker manipulates a web application’s SQL queries by injecting malicious input. This vulnerability is dangerous because it allows attackers to alter the intended SQL commands. As a result, they can retrieve sensitive data, modify data, execute unwanted commands on the underlying database, or even lead to system compromise. Historically, SQL Injection has been listed at the top of the OWASP Top 10 vulnerabilities—even being ranked #1 in earlier versions—and remains one of the most critical risks in web application security.
+
+─────────────────────────────
+
+2. How do parameterized queries help prevent SQL Injection attacks?
+
+Parameterized queries prevent SQL injection by separating the SQL code from the data being injected. Instead of constructing SQL statements merely by concatenating strings together, developers use placeholders (or bind variables) in the query. The actual user-supplied data is then “bound” to these placeholders at runtime. This binding process ensures that the database treats the injected values as data only, not as executable code. As a result, any malicious syntax provided by an attacker is not interpreted as part of the SQL command, effectively neutralizing the injection attempt.
+
+─────────────────────────────
+
+3. Describe how Java’s built-in PreparedStatement helps in mitigating SQL Injection. Provide an example explanation.
+
+Java’s PreparedStatement class is designed specifically to prevent SQL Injection by supporting parameterized queries. When using PreparedStatement, developers write the SQL query with placeholders (typically question marks) for parameters. Before execution, the application code assigns the actual data to each placeholder by calling methods like setString() or setInt(). For example, in the provided code snippet:
+
+  String query = "SELECT account_balance FROM user_data WHERE user_name = ?";  
+  PreparedStatement pstmt = connection.prepareStatement(query);
+  pstmt.setString(1, custname);
+
+The query is compiled first, and then the customer name is bound as a parameter. Even if the customer name contains malicious characters, it is treated strictly as a value, rendering SQL injection ineffective.
+
+─────────────────────────────
+
+4. How does using Hibernate (both with HQL and the Criteria API) in Java further leverage parameterization to prevent SQL Injection?
+
+Hibernate, an Object/Relational Mapping (ORM) tool for Java, offers two common ways to query the database: HQL (Hibernate Query Language) and the Criteria API. Both methods support parameter binding. 
+
+In the HQL example, the query is defined with a named parameter (e.g., :productDescription), and then the parameter is set using setParameter. This mechanism abstracts away the need to manually construct SQL strings, reducing the risk of injection. Similarly, when using the Criteria API, Restrictions.eq() is used along with the input parameter; Hibernate takes care of safely binding the input value. In both cases, the input is validated and bound securely, ensuring that any malicious content in the input is not executed as part of the SQL command.
+
+─────────────────────────────
+
+5. Why is it important to perform query parameterization on the server-side, despite some client-side frameworks providing similar functionality?
+
+Even though many client-side frameworks and libraries offer query parameterization functions, it is critical that parameter binding happens on the server-side. This is because client-side libraries merely construct the query string—they often perform the parameterization before sending the final raw query to the database server. If any parameterization occurs solely on the client-side, a determined attacker could bypass these controls and send custom-crafted queries directly to the server. Server-side parameterization provides the last line of defense, ensuring that queries reaching the database are secure regardless of any manipulation happening on the client side.
+
+─────────────────────────────
+
+6. Explain how the .NET examples demonstrate query parameterization, and what methods or techniques are used.
+
+In .NET examples provided, query parameterization is implemented by constructing the SQL statement with placeholders and then binding parameters to those placeholders. For instance, in the first .NET example, an OleDbCommand is created with a SQL query containing a placeholder (“?”), and an OleDbParameter is added to assign the actual customer name value. In another ASP .NET example, a named parameter (e.g., @CustomerId) is used within the SQL statement, and the SqlCommand's Parameters collection is employed to add a SqlParameter with a specific SQL data type and a bound value. Both methods ensure that the input values are treated as literal data rather than executable code, thus preventing SQL Injection.
+
+─────────────────────────────
+
+7. What is the role of stored procedures in relation to SQL Injection, and how can dynamic SQL within stored procedures introduce risks?
+
+Stored procedures are precompiled routines that perform database operations. They are generally designed to abstract and encapsulate SQL logic, and when used properly, they naturally bind input parameters to their query parts. However, the risk arises when stored procedures use dynamic SQL—SQL statements constructed at runtime by concatenating strings or using input values directly inside the query string. In such cases, if the construction of dynamic SQL is not parameterized using bind variables, it can become vulnerable to SQL Injection. Even in stored procedures, it’s crucial to use methods like EXECUTE IMMEDIATE with bind variables or sp_executesql with parameterization to ensure that any dynamic SQL is safe from injection attacks.
+
+─────────────────────────────
+
+8. How are bind variables used in Oracle PL/SQL stored procedures to mitigate SQL Injection in dynamic SQL scenarios?
+
+In Oracle PL/SQL, bind variables are used within dynamic SQL to treat input values as literal data rather than part of the SQL command. For instance, in the example provided for a stored procedure using dynamic SQL, the SQL statement is constructed with placeholders like :1 and :2:
+
+  stmt := 'SELECT balance FROM accounts_table WHERE user_ID = :1 AND department = :2';
+
+The EXECUTE IMMEDIATE command is then used along with the USING clause, which binds the actual variables (UserID and Dept) to their respective placeholders. This guarantees that even though the SQL statement is built dynamically, the input parameters are safely bound, preventing any malicious input from altering the intended SQL logic.
+
+─────────────────────────────
+
+9. Describe how SQL Server stored procedures use bind variables with dynamic SQL and explain the benefit.
+
+SQL Server stored procedures can use dynamic SQL safely by employing bind variables in combination with the sp_executesql stored procedure. In the example provided, the stored procedure constructs a SQL command string with named placeholders (@UID and @DPT). It then calls sp_executesql and passes both the SQL statement and a parameter definition string (e.g., '@UID VARCHAR(20), @DPT VARCHAR(10)'). Finally, the method binds the actual input values (@UserID and @Dept) to these named placeholders. This approach ensures that input values are separately processed from the SQL command, making it impossible for an attacker to inject harmful SQL, as any input is confined to its placeholder and interpreted as data only.
+
+─────────────────────────────
+
+10. Provide an overview on how Rust with SQLx performs query parameterization, referencing the code examples given.
+
+In Rust, using the SQLx crate, developers also employ parameterized queries to prevent SQL Injection. There are two approaches shown in the examples. In the first, a compile-time checked macro function query_as! is used, allowing SQLx to validate the SQL query at compile time by ensuring that the bound parameters and expected output types match the database schema. The query includes a placeholder (“?”), and a variable (username) is bound to it during the query execution. In the second approach, the standard query_as function is used along with the bind() method to associate the input parameter to the placeholder in the query. Both approaches ensure that user inputs are safely incorporated into the SQL query, with Rust’s strong type-checking and compile-time checks adding an extra layer of security against SQL Injection.
+
+─────────────────────────────
+
+These questions and detailed answers cover the primary concepts, benefits, and language-specific examples of query parameterization as explained in the cheat sheet.

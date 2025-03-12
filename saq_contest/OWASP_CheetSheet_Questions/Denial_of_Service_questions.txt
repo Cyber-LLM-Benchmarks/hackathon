@@ -1,0 +1,84 @@
+Below are 10 questions based on the provided Denial of Service Cheat Sheet, each accompanied by a detailed and informative answer.
+
+─────────────────────────────
+
+1. Question: Why is availability considered a fundamental principle in the context of denial of service (DoS) attacks?  
+Answer: Availability is one of the core components of the CIA triad (Confidentiality, Integrity, and Availability). The cheat sheet stresses that when a DoS attack is successful, it disrupts the system’s availability—preventing legitimate users from accessing services or data. Since every part of an interoperable computing system must perform correctly, if one element fails, the entire infrastructure can be compromised. Thus, ensuring high availability helps mitigate the risk of service interruptions and is paramount in designing DoS-resilient solutions.
+
+─────────────────────────────
+
+2. Question: What are the three main attack surfaces for DoS attacks as described in the cheat sheet, and how do they differ?  
+Answer: The cheat sheet categorizes DoS attack surfaces into three main areas based on the OSI model:
+ • Application Attacks: Target application layer (OSI Layer 7) by exhausting system resources or rendering applications functionally unusable. They are hard to mitigate because the attacks often involve subtle resource consumption rather than bandwidth saturation.
+ • Session (or Protocol) Attacks: Consume server or intermediary resources like those in firewalls or load balancers. These attacks manipulate protocols to keep connections open or exhaust resources through prolonged handshakes.
+ • Network (or Volumetric) Attacks: Focus on saturating bandwidth, overwhelming the network infrastructure with excessive packet flows. This often involves high-volume traffic that incapacitates communication links.
+Each attack type leverages different vulnerabilities and requires tailored defence mechanisms.
+
+─────────────────────────────
+
+3. Question: How do physical layer and data (MAC/ARP) layer attacks contribute to the success of a DoS attack?  
+Answer: The cheat sheet explains that while the focus of many DoS discussions is on higher OSI layers, the lower layers can also be exploited:
+ • Physical Layer Attacks: Involve physical interference—such as cutting cables or damaging hardware—which leads to complete service outages on affected networks. An example mentioned is an incident where an underground cable was cut, disrupting internet access to an entire country.
+ • Data Link Layer Attacks: Include techniques like MAC flooding and ARP poisoning. MAC flooding overloads a switch’s MAC address table, forcing it into a hub-like mode that broadcasts traffic to all ports, potentially exposing data and slowing the network. ARP poisoning involves sending spoofed ARP messages so that a malicious actor intercepts or blocks data traffic, disrupting normal network communication.
+Both attack types disrupt normal network operations, with MAC flooding causing performance degradation and ARP poisoning potentially intercepting or stopping traffic entirely.
+
+─────────────────────────────
+
+4. Question: What role do scaling options, redundancy, and cost analysis play in building a resilient defence against DoS attacks?  
+Answer: The cheat sheet recommends a measured approach that considers several key components:
+ • Scaling Options: “Scaling up” focuses on improving the capacity of individual hardware components, while “scaling out” refers to adding more complete units or nodes to distribute the load. Both strategies help manage increased demand during an attack.
+ • Redundancy and Bulkhead Design: Implementing redundancy (with no single point of failure) ensures that if one element fails under attack, others can continue functioning. Bulkhead isolation prevents a failure in one component from affecting the entire system.
+ • Cost Analysis: It is important to balance the cost implications of these techniques against the potential risks and impact of a DoS attack. This involves evaluating the investment in hardware, software enhancements, and operational readiness.
+Together, these approaches help design systems that can continue to operate, even in the face of escalating DoS threats.
+
+─────────────────────────────
+
+5. Question: How does a slow HTTP attack work and why is it particularly effective for causing a DoS?  
+Answer: A slow HTTP attack involves sending HTTP requests to a target server very slowly or in fragmented parts. The server, waiting for the complete request, keeps a connection open and reserves resources for too long. As the attacker generates multiple slow requests, the server’s concurrent connection pool eventually becomes exhausted. This renders the server unable to process new requests from legitimate users, effectively leading to a DoS. The attack is efficient and cost-effective for the attacker because it requires minimal resources while placing a maximum burden on the server’s connection management.
+
+─────────────────────────────
+
+6. Question: What is meant by “graceful degradation” in software design, and how does it contribute to DoS resilience?  
+Answer: Graceful degradation refers to the ability of a system or application to continue functioning at a reduced level rather than failing completely when some components are compromised. This design philosophy mitigates the impact of a DoS attack by ensuring that parts of the system remain operational even if certain subsystems become overloaded or fail. In practice, graceful degradation might involve shutting down non-essential functions, serving cached content, or reducing service quality temporarily. This approach prevents total system collapse and allows for continued service delivery, crucial for maintaining user trust and operational continuity during incidents.
+
+─────────────────────────────
+
+7. Question: Why is preventing a single point of failure (SPOF) critical when designing defenses against DoS attacks, and what are some strategies to achieve it?  
+Answer: A single point of failure is a component whose failure would compromise the entire system. DoS attacks often target SPOFs to maximize damage with minimal effort. The cheat sheet suggests several strategies to prevent SPOFs:
+ • Employing stateless components that do not rely heavily on shared resources.
+ • Building redundant systems so that if one node fails, others can take over.
+ • Creating “bulkheads” that isolate failures and prevent them from cascading.
+ • Designing systems that can survive external service failures through fault tolerance.
+These measures ensure that even if part of the infrastructure is overwhelmed or compromised, the overall system remains resilient and continues serving requests.
+
+─────────────────────────────
+
+8. Question: How do rate limiting techniques help mitigate DoS attacks, and what parameters should be considered when implementing them?  
+Answer: Rate limiting is the practice of controlling the amount of traffic allowed to access a server or network component, thereby reducing the risk of resource exhaustion during a DoS attack. Effective rate limiting involves:
+ • Setting a Minimum Ingress Data Rate: Dropping connections that do not meet a baseline threshold, which helps filter out slow HTTP attacks.
+ • Defining an Absolute Connection Timeout: Ensuring that stuck or incomplete connections do not persist longer than necessary.
+ • Establishing a Maximum Ingress Data Rate: Preventing any single client from overwhelming the server’s bandwidth or resources.
+ • Total Bandwidth Size Limit and Load Limit: Regulating overall traffic and the number of simultaneous users allowed.
+By carefully calibrating these thresholds based on normal application traffic, administrators can quickly identify malicious traffic and prevent attackers from monopolizing system resources.
+
+─────────────────────────────
+
+9. Question: What role does input validation play in preventing DoS attacks, and what are some recommended practices?  
+Answer: Input validation helps prevent DoS attacks by ensuring that user-supplied data is within acceptable boundaries, thereby reducing the potential for resource exhaustion. Recommended practices include:
+ • Limiting File Upload Size and Extensions: This prevents abuse of disk space and related processing functions (like image resizing or PDF creation).
+ • Limiting Total Request Size: Ensuring that no single request can overload the system’s processing capabilities.
+ • Preventing Input-Based Resource Allocation: Avoiding scenarios where user input directly influences resource-intensive operations.
+ • Avoiding Input-Driven Threading or Function Calls: This ensures that user requests don’t trigger runaway processes that could over-consume CPU resources.
+These practices help secure the application from subtle resource-exhaustion attacks that could otherwise degrade performance or knock services offline.
+
+─────────────────────────────
+
+10. Question: What are ISP-level and global-level remediations for DoS attacks, and how do they complement on-application defenses?  
+Answer: ISP-level remediations and global-level services provide an additional layer of defense that can filter and absorb large-scale DoS attacks before the malicious traffic reaches the core infrastructure:
+ • ISP-Level Remediations: These involve using edge routers to filter invalid sender addresses, thus thwarting IP spoofing attempts. Additionally, evaluating your ISP for support on high-bandwidth scenarios (with multiple internet access points and sufficient capacity) ensures that large traffic spikes are managed effectively.
+ • Global-Level Remediations: Commercial cloud filter services offer massive scale filtering solutions capable of handling attacks up to hundreds of Gbit/s. These services often employ sophisticated traffic analysis, filtering non-compliant or malicious traffic, and are designed to remain compliant with data protection laws even if traffic is routed internationally.
+Integrating these external services with internal rate limiting, input validation, and other application-level defenses provides a robust defense-in-depth strategy. This layered approach ensures that even if one layer is overwhelmed, other layers will help mitigate the overall impact of the attack.
+
+─────────────────────────────
+
+These questions and detailed answers provide a comprehensive understanding of the methodologies, defensive strategies, and design principles related to mitigating DoS attacks as outlined in the cheat sheet.

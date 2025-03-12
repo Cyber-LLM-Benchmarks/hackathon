@@ -1,0 +1,71 @@
+Below are 10 questions with detailed answers based on the provided Node.js Docker cheat sheet:
+
+──────────────────────────────
+1. Question: Why should you use explicit and deterministic Docker base image tags for Node.js applications, and what problems arise from using the default tag?
+
+Answer:
+Using explicit and deterministic base image tags is critical because without them you risk non-deterministic builds. When you use something like “FROM node” without specifying a tag, Docker defaults to the “latest” tag. This means every build might pull a freshly built image that could contain unintended changes, new libraries, or security vulnerabilities. Explicitly specifying both the Node.js version and the variant (for example, “node:lts-alpine”) helps achieve consistent builds. Additionally, using the image’s SHA256 digest (e.g., “FROM node:lts-alpine@sha256:…”) locks in a specific image state. This improves security by avoiding unnecessary software bloat and reducing the attack surface, as many bugs and vulnerabilities may be present in a full OS image compared to a minimal one like Alpine.
+
+──────────────────────────────
+2. Question: What is the difference between using “npm install” and “npm ci --omit=dev” in your Dockerfile, and why is the latter recommended for production builds?
+
+Answer:
+“npm install” will install all dependencies as listed in your package.json—including both the production dependencies and devDependencies. This is not ideal for production because any development-only packages can increase image size and may introduce additional security risks. “npm ci” installs dependencies based exactly on your lockfile (package-lock.json), which ensures a clean and reproducible install environment. The “--omit=dev” flag further instructs npm to ignore devDependencies. The result is a leaner Docker image that only includes what’s necessary to run the application in production, which improves performance, reduces footprint, and minimizes potential vulnerabilities.
+
+──────────────────────────────
+3. Question: Why is setting the NODE_ENV environment variable to “production” important in Node.js Docker images, and how does it impact application behavior?
+
+Answer:
+Setting NODE_ENV to “production” is a best practice because many Node.js frameworks and libraries perform optimizations only when this environment variable is set. In production mode, modules like Express, Fastify, or various ORMs may disable verbose logging, enable caching, or switch to optimized code paths that improve performance and security. By explicitly adding “ENV NODE_ENV production” in your Dockerfile, you guarantee that the runtime environment activates production optimizations, avoids the overhead of development configurations, and ensures that only production dependency sets are used during runtime.
+
+──────────────────────────────
+4. Question: What are the security implications of running a container as root, and how can you safely drop privileges in a Dockerfile for a Node.js application?
+
+Answer:
+Running a container with root privileges is risky because if an attacker is able to exploit a vulnerability (for instance through command injection or file traversal), they obtain full system rights inside the container. Since containers running as root can potentially allow privilege escalation or container escape, adopting the principle of least privilege is essential. In the official Node.js Docker images, there is a non-root user called “node.” However, merely switching the user (via “USER node”) is insufficient if the application files are still owned by root. The best practice is to combine copying files with the “--chown=node:node” flag (e.g., “COPY --chown=node:node . /usr/src/app”) so that files are correctly owned by the non-root user, then explicitly switch to that user with “USER node” before running the application. This approach restricts permissions and reduces risk.
+
+──────────────────────────────
+5. Question: What issues can arise when using the “CMD” instruction in different notations, and how does this affect signal handling for Node.js processes running in Docker?
+
+Answer:
+There are two forms of the “CMD” instruction in a Dockerfile: the shell form and the exec (JSON array) form. In the shell form (e.g., CMD "npm" "start" without brackets) a new shell process (like /bin/sh) is invoked and then the actual application is launched. This means that signals (such as SIGTERM or SIGINT) sent to the container might not be forwarded properly to the Node.js process, resulting in improper shutdown behavior. Similarly, invoking npm to run the application indirectly (e.g., “npm start”) can mean that the Node process never becomes PID 1 and may not receive the signals it needs directly. The exec form (e.g., CMD ["node", "server.js"]) directly starts the Node.js process without an intervening shell, making the process more responsive to signals. However, caution is needed because when Node.js runs as PID 1 it misses out on certain signal defaults. That’s why using an init process (like dumb-init) helps capture signals correctly and forwards them. In summary, the method of process invocation directly impacts how signals are propagated and how gracefully an application can terminate.
+
+──────────────────────────────
+6. Question: How does dumb-init improve running Node.js applications in Docker, and why is it recommended to include it in production Dockerfiles?
+
+Answer:
+dumb-init is a minimal init system designed specifically for container environments. When a process runs as PID 1, it does not inherit the behavior of a typical init system, meaning that signals such as SIGTERM (used by Docker or orchestration systems to indicate shutdown) might not be handled properly. dumb-init acts as a small shim that becomes PID 1 and then spawns your application as a child process, ensuring that signals are correctly forwarded. By adding dumb-init (via “RUN apk add dumb-init”) and modifying the CMD to “CMD [“dumb-init”, “node”, “server.js”]”, the Node.js application benefits from proper handling of shutdown signals. This guarantees that termination procedures can be executed gracefully, reducing the chance of abrupt application stops, resource leaks, and connection errors.
+
+──────────────────────────────
+7. Question: Why is graceful termination important for Node.js web applications in a containerized environment, and how can it be implemented in your application code?
+
+Answer:
+Graceful termination is crucial because abruptly killing an application (via SIGINT or SIGTERM) can disconnect active clients and cause data loss or an inconsistent state. In scalable, orchestrated environments such as Kubernetes, when a container is stopped, clients in the middle of long-running requests may experience errors or dropped connections. Graceful termination allows the application to complete in-flight requests and close resources (e.g., open database connections or HTTP request pipelines) before shutting down. In Node.js applications, you can implement graceful termination by setting up signal handlers—for example, handling SIGINT and SIGTERM events—and then invoking cleanup routines like fastify.close() (or similar methods for other frameworks) to finish ongoing processes. This approach ensures a better user experience and more predictable shutdown behavior across containerized deployments.
+
+──────────────────────────────
+8. Question: What are multi-stage Docker builds, and how do they help in securing the build process and reducing the final image size for a Node.js application?
+
+Answer:
+Multi-stage builds separate the build environment from the final production environment. In the first “build” stage, you could use a more robust image (like node:latest) to perform tasks such as installing dependencies (even if they require native compilation with additional compilers) or building code artifacts. This stage might require secret configuration (for example, private npm tokens). Once the build is complete, you copy only the necessary files (like the “node_modules” folder and compiled code) to a leaner base image (such as node:lts-alpine) in a separate stage. This results in a smaller final image that excludes development tools and sensitive build-time information. Multi-stage builds also mitigate the risk of inadvertently including secrets (as they remain in the build stage and are not copied over) and produce a production image with a minimal attack surface and runtime footprint.
+
+──────────────────────────────
+9. Question: How can you prevent leakage of sensitive information (such as npm tokens) into your Docker image during the build process, and what role do Docker secrets play in this scenario?
+
+Answer:
+One common pitfall when building Docker images is accidentally embedding secret information (like an npm authentication token) inside writable layers of the final image. A typical workaround, such as deleting a temporary .npmrc file after installing dependencies, fails because the file remains in the layer history. Docker secrets help avoid this issue by temporarily mounting secret files such as .npmrc only during the build step that requires them. With Docker BuildKit, you can use the “--mount=type=secret,…” flag in the RUN instruction. For example:
+  RUN --mount=type=secret,mode=0644,id=npmrc,target=/usr/src/app/.npmrc npm ci --omit=dev
+This command temporarily mounts the .npmrc file (which you have added to your .dockerignore to ensure it is not copied) just for that instruction. Once the command finishes, the secret information is not persisted in any layer of the image, which greatly enhances security by preventing token disclosure. When building, you pass the secret using a command such as:
+  docker build . -t my-node-app --secret id=npmrc,src=.npmrc
+
+──────────────────────────────
+10. Question: What is the purpose of a .dockerignore file, and why is it important when building a Node.js Docker image?
+
+Answer:
+A .dockerignore file works much like a .gitignore file by excluding files and directories from being sent to the Docker daemon during the build process. This exclusion is important for several reasons:
+ • Efficiency: Avoiding unnecessary files (like temporary logs or local configuration files) speeds up the build process and reduces context size.
+ • Security: Sensitive files (such as local configuration files, credentials, or the .npmrc file containing tokens) should not be copied into the Docker image.
+ • Consistency: Copying unnecessary files like a preexisting node_modules directory may override or conflict with the ones freshly installed during the Docker build. 
+A typical .dockerignore for Node.js might include patterns like “node_modules”, “npm-debug.log”, “Dockerfile”, “.git”, “.gitignore”, and “.npmrc”. This ensures that only the minimal and necessary artifacts are inside the final image, making it lean, reproducible, and secure.
+
+──────────────────────────────
+These questions and answers cover critical aspects—from base image selection and dependency installation to runtime considerations and secrets management—that are essential to building secure and optimized Node.js Docker images.

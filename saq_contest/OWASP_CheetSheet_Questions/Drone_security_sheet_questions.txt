@@ -1,0 +1,80 @@
+Below are 10 questions based on the Drone Security Cheat Sheet along with detailed answers:
+
+─────────────────────────────  
+Question 1: What are the three main components of a typical drone system architecture, and what security vulnerabilities can be associated with each?
+
+Answer:  
+A typical drone system comprises three components:  
+• Unmanned Aircraft (UmA) – This is the physical drone, including its sensors and onboard control systems. Vulnerabilities here include direct attacks on sensors (such as GPS spoofing or camera manipulation) or physical tampering.  
+• Ground Control Station (GCS) – The interface used to monitor and control drone operations. The GCS is a potential target for unauthorized access, misconfigurations, or interception of control commands through insecure communication links.  
+• Communication Data-Link (CDL) – This network connection links the drone and the GCS. Since data flows between these two endpoints, it is prone to attacks such as interception, spoofing, or replay. Insecure protocols or unencrypted transmissions can provide an entry point for attackers.
+
+─────────────────────────────  
+Question 2: Why is secure communication between a drone and its ground station critical, and what methods or protocols can be used to ensure this security?
+
+Answer:  
+Secure communication is crucial because any lack of protection on the data-link (CDL) can allow attackers to intercept, replay, or modify messages. This vulnerability might let an attacker inject wrong commands, intercept sensitive telemetry data, or spoof the authentication of the devices. Methods to ensure security include implementing robust encryption protocols (such as TLS or DTLS for end-to-end encryption), message signing (especially when using protocols like MAVLink 2.0), and protocols such as 802.11w Management Frame Protection for Wi-Fi that help prevent deauthentication attacks. All these measures ensure that data remains confidential and integral during transmission.
+
+─────────────────────────────  
+Question 3: What are the security risks related to the companion computer found in drone systems, and what measures can be taken to mitigate these risks?
+
+Answer:  
+The companion computer in drone systems is responsible for handling peripherals (cameras, LiDARs, etc.) and telemetry data. Its exposure comes from open ports such as SSH or FTP, which can be exploited if not properly secured. Misconfigurations or user errors in authentication or access control settings further increase the risk. To mitigate these risks, it is essential to secure open ports by employing firewalls or port management solutions, enforce strong authentication mechanisms (such as multi-factor authentication), regularly update the system against vulnerabilities, and ensure that the software configuration practices align with security best practices.
+
+─────────────────────────────  
+Question 4: How can physical security issues impact drone operations, and what strategies can be implemented to protect against these issues?
+
+Answer:  
+Physical security issues can lead to unauthorized tampering or data exfiltration if a drone is captured, lost, or stolen. For instance, unsecured USB ports or exposed hardware components make a drone physically accessible to attackers who might steal sensitive data or modify internal systems. Insecure supply chains could also introduce compromised components that carry hidden vulnerabilities. Strategies to mitigate these issues include hardening physical access (locking down ports, using tamper-resistant enclosures), performing rigorous supply chain audits, and ensuring proper decommissioning protocols that erase or secure any stored sensitive data. Additionally, enabling hardware-level encryption or secure boot mechanisms can help secure the system even if physical access is compromised.
+
+─────────────────────────────  
+Question 5: Describe the vulnerabilities associated with Wi-Fi as a communication protocol in drone systems and recommend methods to secure these vulnerabilities.
+
+Answer:  
+Wi-Fi is commonly used for drone control and FPV video transmission but comes with several vulnerabilities. Firstly, weak authentication practices or unprotected channels can allow unauthorized access. Protocols like WEP are particularly prone to attacks like packet crafting and deauthentication. To secure Wi-Fi communications, it is recommended to use strong encryption standards like WPA3, which significantly improve security over older protocols. Additionally, enabling 802.11w Management Frame Protection helps to mitigate deauthentication attacks. Furthermore, enhancing security settings such as disabling SSID broadcasting and, if possible, using MAC filtering provide extra layers of security by making the drone less detectable to attackers.
+
+─────────────────────────────  
+Question 6: What are the main sensor security concerns for drones, and how do watermarked signals help address these concerns?
+
+Answer:  
+Sensor security is vital because drones rely on sensor data (from GPS, cameras, altimeters, etc.) to navigate and operate safely. An attacker manipulating sensor data can lead to incorrect positioning, navigation failures, or collisions. For example, GPS spoofing can trick a drone into following false coordinates while still internally displaying correct but fabricated data. Recent research introduces the concept of watermarked signals where the entropy of the signal can be assessed to verify its authenticity. This method ensures that sensor data has not been tampered with by comparing the embedded watermark or entropy against expected values, thereby alerting operators to discrepancies if an attack is underway.
+
+─────────────────────────────  
+Question 7: How does the use of different communication protocols in drones (such as MAVLink 2.0, CAN Bus, ZigBee, Bluetooth) present unique security challenges, and what specific measures are advised for each?
+
+Answer:  
+Each communication protocol in drone systems has its own strengths and vulnerabilities:  
+• MAVLink 2.0 – Commonly used for GCS-to-drone communication. Although widely adopted, it requires precautions like message signing to prevent spoofing and replay attacks, as well as securing heartbeat messages to avoid command injections.  
+• CAN Bus – Generally used for in-system communication among devices. Its vulnerability mostly occurs via physical access, as attackers might tap into the differential signal. Securing physical access and using tools like DroneCAN can help guard against these threats.  
+• ZigBee – A low-power protocol employed for backup telemetry and sensor communications. It allows AES-128 encryption, but key management is crucial. Frequent key rotations help prevent key compromise, and monitoring with SDR tools (e.g., HackRF) can detect packet-sniffing attacks.  
+• Bluetooth – Often used for pairing controllers and mobile apps. It necessitates secure pairing mechanisms by enforcing LE Secure Connections over Bluetooth 4.2+ instead of vulnerable methods like Just Works, which may be subject to MITM attacks.  
+Understanding these challenges and tailoring security measures for each protocol is essential for holistic protocol security.
+
+─────────────────────────────  
+Question 8: What role does logging and monitoring play in the security framework of a drone system, and what issues might arise without it?
+
+Answer:  
+Logging and monitoring are critical components for detecting and responding to security breaches and operational anomalies. Without sufficient logging, unusual patterns or intrusion attempts may remain undetected, allowing an attacker to operate undeterred within the network or system. Inadequate monitoring can also lead to integration issues, especially when external devices like cameras or web servers on telemetry systems are involved. In cases where there are misconfigured integrations, attackers can exploit these weaknesses to gather sensitive information. To mitigate these problems, it is imperative to implement a robust logging system that captures comprehensive data, along with real-time monitoring tools (such as hybrid lightweight Intrusion Detection Systems) to alert operators to suspicious activities immediately.
+
+─────────────────────────────  
+Question 9: What types of cyberattacks are highlighted in the cheat sheet, and what are some general security measures recommended to mitigate these attacks?
+
+Answer:  
+The cheat sheet outlines various cyberattack types including:
+• Malware infections and backdoor access – These attack the integrity and confidentiality of drone systems. Recommended measures include multi-factor authentication and intrusion detection systems.  
+• Social engineering and baiting – Attackers use exploitation tactics to gain unauthorized access; operator training and security awareness are essential defenses.  
+• Injection/modification and fabrication attacks – These compromise data integrity and authentication. Implementing message authentication codes, digital signatures, and assigning privilege appropriately can reduce these risks.  
+• Reconnaissance and scanning – Attackers gather data to plan future exploits, making encrypted traffic and traffic monitoring vital.  
+• Various jamming attacks (e.g., Wi-Fi jamming, de-authentication, and DoS) – Frequency hopping and range variation in transmission are recommended to counter jamming.  
+• Specific attacks like GPS spoofing – Tactics such as return-to-base policies and secure, encrypted traffic are key defenses.  
+Overall, employing layered security measures—ranging from robust encryption and access control to strong logging, monitoring, and operator training—is critical for mitigating the range of cyberattacks detailed in the cheat sheet.
+
+─────────────────────────────  
+Question 10: How do secure communication protocols and their enhancements (such as message signing in MAVLink 2.0 and AES-128 in ZigBee) contribute to mitigating drone security vulnerabilities?
+
+Answer:  
+Secure communication protocols and their enhancements serve as the first line of defense against cyberattacks in drone systems. In the case of MAVLink 2.0, implementing message signing enhances the protocol’s integrity by ensuring that any alteration or spoofing of messages is detectable. Securing heartbeat messages further prevents injection vulnerabilities. Similarly, ZigBee’s support for AES-128 encryption ensures that data transmitted between telemetry and sensor devices remains confidential and resistant to interception. Additionally, frequent network key rotations help ensure that even if a key is compromised, the window of vulnerability is minimal. When combined with complementary measures (such as enforcing strict pairing in Bluetooth or using WPA3 for Wi-Fi), these protocol enhancements collectively build a robust and layered security architecture that significantly mitigates the vulnerabilities inherent in drone operations.
+
+─────────────────────────────  
+
+These questions and answers cover the critical aspects of drone security as outlined in the cheat sheet and offer detailed insights into both the vulnerabilities and the mitigation strategies recommended for safe drone operations.

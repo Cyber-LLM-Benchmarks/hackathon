@@ -1,0 +1,66 @@
+Below are 10 questions based on the cheat sheet, each with a detailed and informative answer.
+
+──────────────────────────────
+1. Question: What is “Callback Hell” (also known as the "Pyramid of Doom") in Node.js, and how can using flat Promise chains or async/await mitigate this issue?
+
+Answer: “Callback Hell” is a situation encountered in asynchronous programming where nested callbacks create a deeply indented “pyramid” structure. As each asynchronous function is nested inside its predecessor, errors and outputs can be hard to manage and the code becomes difficult to read and maintain. Flat Promise chains address this problem by allowing you to return promises in a sequential “top-down” manner—each subsequent .then() or await statement executes only after the previous promise resolves. This flattens the code and enables centralized error handling through the .catch() block. With async/await, asynchronous code takes on a more synchronous appearance, making it easier to follow and reducing potential for errors that arise from nested callbacks. Both methods improve error propagation, readability, and maintainability.
+
+──────────────────────────────
+2. Question: Why is input validation critical in Node.js applications, and which best practices and libraries can be used to ensure robust input sanitization?
+
+Answer: Input validation is essential for preventing various injection attacks—such as SQL Injection, Cross-Site Scripting (XSS), command, LDAP, or file inclusion attacks. By validating and sanitizing user input, you ensure that only expected and safe values are processed by the application. Best practices include using whitelists (allowing only predefined acceptable values) or using scheme-based checks before processing input. Libraries like validator and express-mongo-sanitize are commonly used in Node.js to perform these checks, helping to prevent malicious data from being processed. Additionally, it’s important to validate request types (e.g., JSON versus multipart) as certain types may have a higher risk profile due to the possibility of blocking operations such as JSON parsing.
+
+──────────────────────────────
+3. Question: What are the reasons for setting request size limits in an application, and what are some techniques or middleware you can use in Node.js to enforce these limits?
+
+Answer: Buffering and parsing large request bodies can be resource intensive. Without limits, an attacker might send extremely large payloads that exhaust the server’s memory or disk space, leading to a Denial of Service (DoS). A common practice is to set request size limits, which can be easily done with middleware such as raw-body for generic requests or express.json() and express.urlencoded() for more specific content types. These methods ensure that requests above a certain size are automatically rejected. However, developers must also handle exceptions where larger payloads are expected (e.g., file uploads) and adjust limits accordingly. Validating the content type against the actual data length ensures that attackers cannot bypass these restrictions simply by altering HTTP headers.
+
+──────────────────────────────
+4. Question: How can you effectively implement application activity logging in Node.js, and why is it important for security and debugging?
+
+Answer: Effective logging in Node.js is crucial for both debugging purposes and security incident response. Logging allows developers to track application behavior, pinpoint errors, and respond to abnormal activities such as repeated failed logins, which might be indicators of attempted attacks. Popular Node.js logging libraries—such as Winston, Bunyan, and Pino—offer features including multiple transport options (console, file, external monitoring systems), log querying, and handling of uncaught exceptions. For instance, using Winston, you can log to both the console and a file, specify logging levels, and maintain structured logs that can feed into an IDS/IPS. This layered logging strategy helps not only during post-incident forensic investigations but also continuously monitors the health and security posture of the application.
+
+──────────────────────────────
+5. Question: What are potential pitfalls when performing blocking operations in Node.js, and how can you ensure the event loop remains unblocked?
+
+Answer: Node.js relies on a single-threaded, event-driven architecture where the event loop handles incoming requests and I/O operations accordingly. Blocking operations, especially those that are CPU intensive or synchronous file system calls (like fs.readFileSync or fs.unlinkSync), can halt the event loop. This means that while one blocking operation is executing, no other code can run, potentially causing performance degradation or race conditions. The best practice is to always perform blocking operations asynchronously. For example, using fs.readFile (asynchronous) rather than fs.readFileSync, and nesting dependent asynchronous calls within callbacks or using promise chains/async-await ensures correct sequential execution without blocking the event loop. This approach allows Node.js to maintain high concurrency and responsiveness during heavy load.
+
+──────────────────────────────
+6. Question: What are some key HTTP security headers that should be set in a Node.js application, and how does the helmet middleware simplify this process?
+
+Answer: HTTP security headers are critical in mitigating various types of attacks, including XSS, clickjacking, MIME-sniffing, and forced caching of sensitive data. Key headers include:
+ • Strict-Transport-Security (HSTS): Enforces the use of HTTPS.
+ • X-Frame-Options: Prevents clickjacking by prohibiting the app from being framed.
+ • X-XSS-Protection: Though now deprecated, can be used to disable browser XSS protection which might be unreliable.
+ • Content-Security-Policy (CSP): Reduces risks of XSS and code injection by specifying trusted sources for content.
+ • X-Content-Type-Options: Prevents MIME-sniffing.
+ • Cache-Control/Pragma: Ensures sensitive responses are not cached.
+Helmet is a popular Node.js middleware that aggregates these headers into a single wrapper function. It simplifies configuration by internally setting recommended defaults and allowing custom options so the developer can tune each header according to the application requirements.
+
+──────────────────────────────
+7. Question: How do you address HTTP Parameter Pollution (HPP) in Node.js applications, and what is the role of middleware like hpp in mitigating this issue?
+
+Answer: HTTP Parameter Pollution occurs when an attacker submits multiple HTTP parameters with the same name which might lead to unpredictable application behavior. For instance, Express.js populates multiple parameters as an array, which can cause logic errors if the application expects a single value. To prevent this, middleware like hpp can be used; hpp cleans incoming request parameters by selecting the last value from multiple entries. This ensures your application processes only one accepted value per parameter and thereby avoids unintended side effects or security vulnerabilities arising from parameter ambiguity. It’s a straightforward method to enforce stricter input interpretation and reduce the attack surface related to parameter pollution.
+
+──────────────────────────────
+8. Question: Why should dangerous functions such as eval() and child_process.exec() be used with extreme caution in Node.js applications, and what practices help mitigate associated risks?
+
+Answer: Functions like eval() and child_process.exec() execute strings as code or shell commands, which can lead to remote code execution vulnerabilities if these strings include unsanitized user input. In the case of eval(), executing arbitrary JavaScript increases the risk of injecting malicious code, while child_process.exec() uses the shell (e.g., /bin/sh) and can allow attackers to run operating system commands on the server. To mitigate these risks, developers should avoid these functions unless absolutely necessary. When they must be used, always ensure that user input is thoroughly validated and sanitized or use safer alternatives (such as child_process.execFile() which does not invoke the shell). Overall, adopting a “secure by default” approach means refactoring code to avoid these functions in favor of modern, secure patterns.
+
+──────────────────────────────
+9. Question: How does Node.js handle errors in asynchronous calls and EventEmitter objects, and what best practices should be followed to manage these errors securely?
+
+Answer: Error handling in Node.js is more complex than in synchronous environments because errors in asynchronous callbacks do not automatically propagate. In many asynchronous functions, the first parameter in the callback is reserved for an Error object. It’s important that developers check and either handle or propagate this error through successive callbacks or promise chains. For EventEmitter objects, if an error event is emitted and no listener is attached, Node.js will throw the error, potentially crashing the application. Therefore, always attach error listeners to EventEmitters to capture and process errors appropriately. Additionally, use process-level uncaughtException handlers to cleanly shut down the application when encountering an unexpected error. However, it’s recommended to perform a graceful restart rather than trying to resume working in an unknown state.
+
+──────────────────────────────
+10. Question: Which strategies and Node.js modules can be employed to take precautions against brute-force attacks, particularly on login routes?
+
+Answer: Brute-force attacks involve repeatedly trying different credentials until a correct one is found. To mitigate this risk, several strategies are available:
+ • Rate limiting: This can be implemented using modules such as rate-limiter to restrict the number of requests per IP address over a defined time interval.
+ • Delayed responses: Tools like express-bouncer or express-brute increase the wait time after each failed login, which significantly raises the effort required by attackers.
+ • CAPTCHA: Integrating CAPTCHA (for example through svg-captcha) makes automated requests more difficult by involving human verification.
+ • Account lockout: By tracking login attempts (for example with solutions offered by mongoose or custom logic), accounts can be temporarily locked after multiple failed attempts.
+Using these measures helps to detect, delay, or block brute-force attempts, increasing the overall resilience of your Node.js application against automated attacks.
+
+──────────────────────────────
+These questions and answers not only cover key points of Node.js security best practices, but also provide practical code examples and strategies that can be applied in real-world scenarios.

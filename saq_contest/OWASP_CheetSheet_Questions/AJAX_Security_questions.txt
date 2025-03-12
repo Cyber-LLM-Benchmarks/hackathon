@@ -1,0 +1,94 @@
+Below are 10 questions based on the AJAX Security Cheat Sheet, with detailed answers for each:
+
+──────────────────────────────
+1. Why is it advisable to use .innerText instead of .innerHTML when updating content on the client side?
+
+Answer:
+Using .innerText instead of .innerHTML is recommended because .innerText automatically escapes any HTML code, preventing the browser from interpreting user-supplied input as executable HTML or script. By doing so, it greatly reduces the risk of cross-site scripting (XSS) attacks. If .innerHTML is used without careful sanitization, injected malicious code might be executed in the context of your page, compromising the security of your application.
+
+──────────────────────────────
+2. What are the risks associated with using eval() or new Function() in JavaScript, and why should they be avoided?
+
+Answer:
+Functions like eval() and new Function() allow execution of strings as code, which poses significant security risks for several reasons:
+• They can execute arbitrary, potentially malicious code if an attacker manages to inject input.
+• Their use often points to design issues where behavior or logic is being dynamically constructed and might be exploited.
+• Debugging code that uses such functions is more difficult, and code optimization by the JavaScript engine can be hindered.
+Because a malicious user can manipulate client-side code (using browser plugins or developer tools), using eval() or new Function() opens a widening security gap. Instead, safer design patterns or frameworks should be used to avoid these risks altogether.
+
+──────────────────────────────
+3. Why is data canonicalization (or encoding before use) important when building HTML, script, CSS, or XML, and what role does it play in security?
+
+Answer:
+Data canonicalization (or encoding) ensures that any data inserted into HTML, CSS, JavaScript, XML, or JSON is represented in a way that preserves its literal meaning and prevents it from being misinterpreted as code. Without proper encoding:
+• Special characters could be misinterpreted, leading to injection vulnerabilities (e.g., XSS, code injection).
+• The intended structure of a document (or script) might be altered if dangerous characters are not safely encoded, leading to logical errors.
+For example, when building HTML, encoding user input prevents injected HTML tags from being rendered as executable content. Projects like the OWASP Java Encoder Project offer vetted methods to perform proper encoding based on context.
+
+──────────────────────────────
+4. Why should developers not rely on client-side logic for security purposes?
+
+Answer:
+The client-side environment is under complete control of the user. A user can:
+• Easily manipulate or bypass JavaScript code using browser developer tools or plugins.
+• Alter logic or break out of security checks implemented in the client-side code.
+Since an attacker can intercept, modify, and control the client-side execution flow, any security measures relying solely on client-side logic can be undermined. Therefore, critical security checks, validations, and sensitive business logic should also be implemented on the server side.
+
+──────────────────────────────
+5. What is the importance of duplicating business logic on the server side, and what are the dangers of relying solely on the client?
+
+Answer:
+Relying solely on client-side business logic is dangerous because:
+• A malicious actor can intercept requests, modify them, or even bypass the logic using tools like intercepting proxies or browser debugging tools.
+• Server-side replication ensures that business-critical rules are enforced even if client-side scripts are manipulated or disabled.
+The server should be considered the ultimate authority. This layered approach guarantees that even if an attacker bypasses client restrictions, the backend logic still verifies and enforces security, maintaining data integrity and business correctness.
+
+──────────────────────────────
+6. What are the potential pitfalls of writing your own serialization code, and why are existing libraries generally preferred?
+
+Answer:
+Writing serialization code at a low level can be error-prone because:
+• A small mistake in handling data types, escaping characters, or handling nested structures might lead to security flaws or data integrity issues.
+• Custom serialization risks introducing vulnerabilities like injection attacks or misinterpretation of the data.
+Existing libraries, which are often well-tested and reviewed by the community, handle edge cases more effectively and include built-in protections. They also tend to be optimized for performance and security, minimizing the risk of introducing mistakes that could compromise the application.
+
+──────────────────────────────
+7. Why is dynamically building XML or JSON manually considered risky, and what precautions should be taken when doing so?
+
+Answer:
+Manually building XML or JSON increases the risk of injection flaws because:
+• Special characters might not be appropriately escaped, resulting in malformed documents or unintended code execution.
+• The presence of user input may alter the intended structure if not properly encoded, similar to XSS vulnerabilities.
+Using established libraries or frameworks to build XML or JSON ensures that proper encoding is applied automatically. These tools adhere to standards, reduce human error, and often include mechanisms to validate and sanitize inputs, preventing injection attacks.
+
+──────────────────────────────
+8. Why should confidential secrets never be transmitted to the client, and what are the potential consequences of doing so?
+
+Answer:
+Secrets (such as API keys, passwords, or encryption keys) should never be sent to the client because:
+• Anything delivered to the client can potentially be accessed, viewed, or modified by the user.
+• If secrets are exposed, attackers can misuse them to impersonate the server or gain unauthorized access to sensitive data or services.
+Keeping secrets on the server side ensures that sensitive operations are controlled and minimizes the risk of leakage or exploitation. Even with obfuscation on the client side, determined attackers can reverse-engineer the code or inspect network traffic.
+
+──────────────────────────────
+9. How can one protect against JSON Hijacking, particularly for older browsers, and why is always returning JSON as an object recommended?
+
+Answer:
+JSON Hijacking is an exploitation where an attacker tricks a browser into executing JSON as JavaScript code. To defend against this on older browsers:
+• Always return JSON with an object as the outermost element. For example, returning an object like {"result": [...]} rather than an array ensures that the structure isn’t directly interpretable as valid JavaScript that can be hijacked.
+• For AngularJS, refer to its JSON Vulnerability Protection mechanisms, which are designed to mitigate these risks.
+By wrapping the data in an object, you prevent attackers from exploiting the ambiguous nature of arrays in the global context, significantly reducing the attack surface for JSON Hijacking.
+
+──────────────────────────────
+10. What are some key server-side security measures recommended for web services, and why is input validation crucial even for services expected to be called only from AJAX clients?
+
+Answer:
+Key server-side security measures include:
+• CSRF Protection: Implement tokens or other mechanisms to ensure that requests are legitimate and intended by the user.
+• Input Validation: Validate every input coming from the client, even if it is only meant for AJAX calls, because attackers can directly call these services bypassing client-side checks.
+• Avoid manual serialization: Use reliable libraries to prevent errors and injection vulnerabilities.
+• Always use encoding libraries when dynamically constructing XML or JSON.
+Input validation is critical because the server must assume that every incoming request could be controlled by an attacker. Proper validation prevents injection attacks, logic bypasses, and data integrity issues. Since web services can be accessed directly—beyond the well-intended AJAX calls—robust validation at the backend is a non-negotiable security measure.
+
+──────────────────────────────
+These questions and answers provide a comprehensive understanding of the key security principles outlined in the AJAX Security Cheat Sheet, highlighting best practices to ensure both client and server side remain robust against common threats.

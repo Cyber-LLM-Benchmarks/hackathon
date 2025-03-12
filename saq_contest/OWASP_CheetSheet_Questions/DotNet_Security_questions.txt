@@ -1,0 +1,121 @@
+Below are 10 questions formulated from the cheat sheet information, with detailed answers that explain the concepts and practical coding examples.
+
+──────────────────────────────
+1. What is the .NET Framework, and why is it important for enterprise application development?
+
+Answer:
+The .NET Framework is Microsoft’s primary platform for building large-scale enterprise applications. It is a vast collection of APIs that provide advanced type systems, data management, graphics, file operations, networking capabilities, and much more. Supporting various technologies such as ASP.NET, Windows Desktop, WCF services, and Visual Studio Tools for Office, it is strongly named and versioned at the assembly level to ensure consistency and security. The framework is updated via Windows Update, and developers can also keep individual libraries up-to-date using NuGet. This ubiquity in enterprise solutions makes it fundamental for developers working in the Microsoft ecosystem.
+
+──────────────────────────────
+2. How can developers update and manage the .NET Framework and its third‑party components to maintain security?
+
+Answer:
+The .NET Framework itself is kept current through Windows Update, meaning developers typically do not need to manually update it. However, when individual frameworks or libraries are needed to be updated (for example using NuGet packages), developers should include these updates as part of their development lifecycle. For third‑party libraries that are not managed via NuGet (like ELMAH), developers must monitor and apply updates separately. Keeping all components, including dependencies, updated is crucial to mitigate vulnerabilities, especially those listed in the OWASP Top 10.
+
+──────────────────────────────
+3. What are key practices that help prevent Broken Access Control vulnerabilities in .NET applications?
+
+Answer:
+To prevent Broken Access Control vulnerabilities, developers should:
+ • Set cookies with the HttpOnly flag (e.g., CookieHttpOnly = true) so scripts cannot access them.
+ • Reduce the session timeout and disable sliding expiration to limit the window for session hijacking.
+ • Ensure cookies are sent over HTTPS by configuring requireSSL in web.config.
+ • Implement proper throttling for actions like LogOn, Registration, and password reset to prevent brute force attacks.
+ • Use the built‑in authentication and session management mechanisms provided by .NET rather than hand‑rolled implementations.
+ • Provide uniform feedback on authentication failures (avoiding account enumeration) 
+and enforce authorization at either the method or controller level using attributes such as [Authorize].
+
+──────────────────────────────
+4. How does the cheat sheet recommend handling cryptographic operations and password management in .NET?
+
+Answer:
+The cheat sheet stresses that developers should never implement their own cryptographic routines. Instead, they should use well-tested libraries and managed solutions:
+ • For hashing, strong algorithms like SHA512 and PBKDF2 (via Rfc2898DeriveBytes in older versions or Microsoft.AspNetCore.Cryptography.KeyDerivation.Pbkdf2 in newer versions) are recommended.
+ • Always add a unique salt when hashing passwords.
+ • For encryption, use strong algorithms like AES-512 (or AES-GCM for more advanced scenarios) and protect encryption keys above all else.
+ • Use TLS 1.2 or higher for data in transit and verify configurations with tools like SSL Labs.
+ • Additionally, for sensitive data storage, using native mechanisms like DPAPI is advised.
+These practices ensure that sensitive data is both properly encrypted and resistant to brute-force or cryptographic attacks.
+
+──────────────────────────────
+5. What are the best practices to mitigate SQL Injection attacks in .NET, and how can parameterized queries be implemented?
+
+Answer:
+To prevent SQL Injection attacks:
+ • Use an object-relational mapper (ORM) or stored procedures as the primary method for database access. This avoids writing raw SQL queries.
+ • When direct SQL queries are required, use parameterized queries. For example, in Entity Framework:
+   var sql = @"Update [User] SET FirstName = @FirstName WHERE Id = @Id";
+   context.Database.ExecuteSqlCommand(sql, new SqlParameter("@FirstName", firstname), new SqlParameter("@Id", id));
+ • Do not concatenate user inputs into SQL strings.
+ • In addition, apply the principle of least privilege by using database accounts that have only the necessary permissions.
+These measures reduce the risk of attackers injecting malicious SQL commands.
+
+──────────────────────────────
+6. How can anti-forgery tokens be integrated and validated in both ASP.NET Framework and ASP.NET Core to protect against CSRF attacks?
+
+Answer:
+For ASP.NET Framework:
+ • Include the anti-forgery token in forms using @Html.AntiForgeryToken() within the view.
+ • In the controller action handling the form submission, add the [ValidateAntiForgeryToken] attribute.
+ • Manage proper cookie removal on logout to invalidate the token.
+For ASP.NET Core:
+ • Tag Helpers (which are enabled by default with an @addTagHelper directive in _ViewImports.cshtml) automatically embed anti-forgery tokens in forms.
+ • Global filters like AutoValidateAntiforgeryTokenAttribute can be added in Startup.cs to validate non‑GET requests automatically.
+ • For AJAX requests, attach the token explicitly in the request data.
+This uniform approach across both platforms ensures that each state‑changing request is validated to be coming from a trusted source.
+
+──────────────────────────────
+7. Describe the recommendations for protecting encryption keys and implementing encryption for both storage and transmission in .NET applications.
+
+Answer:
+For encryption in storage:
+ • Use strong encryption standards such as AES (specifically AES-GCM in the provided examples) for encrypting sensitive data.
+ • Protect encryption keys rigorously; keys should be stored separately and securely (e.g., using key management systems or specialized storage like DPAPI).
+ • The cheat sheet advises experts to review the implementation to avoid pitfalls like key rotation issues.
+For encryption in transmission:
+ • Use guidelines that mimic how to create a shared secret over an insecure channel by leveraging ECDH (Elliptic Curve Diffie-Hellman) to exchange public keys.
+ • Once the shared secret is derived, use it to generate an AES key that encrypts the data.
+ • Always generate a new nonce per encryption operation and send it along with the ciphertext and authentication tag.
+In both cases, continually reviewing cryptographic choices against the latest best practices is key to maintaining a secure system.
+
+──────────────────────────────
+8. What logging and monitoring practices does the cheat sheet recommend, and why are they important for security?
+
+Answer:
+Effective logging and monitoring are critical to detect and respond rapidly to security-related events:
+ • Log all authentication attempts (both successful and unsuccessful) with enough context (such as user identity and stack traces) ensuring logs do not expose sensitive data.
+ • Use logging frameworks like Microsoft.Extensions.Logging in .NET Core to centralize logging.
+ • Set up exception handling middleware (e.g., in Startup.cs) to capture and log all unhandled exceptions with meaningful details.
+ • Implement monitoring tools (such as Azure’s Application Insights) to track performance, health, and anomalous behavior in near real‑time.
+These practices ensure that suspicious activities are recorded, potential breaches are identified early, and timely alerts can be sent to security teams for mitigation.
+
+──────────────────────────────
+9. How should developers approach validation when dealing with OS command execution and LDAP queries to prevent injection attacks?
+
+Answer:
+For OS Command Injection:
+ • Use System.Diagnostics.Process.Start to carefully call OS-level functions.
+ • Validate and sanitize all user-supplied arguments using an allowlist that permits only alphanumeric characters or specified safe characters.
+ • Consider encoding techniques—such as Base64—that can safely transport command-line parameters.
+ • Even when newer API features like ProcessStartInfo.ArgumentList are used, do not assume that escaping is sufficient for untrusted input.
+For LDAP injection:
+ • Escape special characters that have meaning in LDAP contexts; consult specific guidelines (e.g., from the LDAP Injection Prevention Cheat Sheet).
+ • Only escape leading or trailing spaces in component names as necessary.
+Proper validation and explicit escaping help ensure that untrusted inputs do not lead to unauthorized actions or expose the system to injection vulnerabilities.
+
+──────────────────────────────
+10. What are some of the key configuration and deployment recommendations for ASP.NET Web Forms to improve security?
+
+Answer:
+For ASP.NET Web Forms security, the cheat sheet recommends several important measures:
+ • Always deploy the site over HTTPS, enabling requireSSL for cookies and forms.
+ • Lock down configuration files—remove unused settings and encrypt sensitive sections within web.config using aspnet_regiis.
+ • Use customErrors to avoid revealing detailed error information in production.
+ • Disable tracing and stack traces to prevent information leakage.
+ • Implement CSRF protections using ViewState’s built-in mechanisms (such as setting ViewStateUserKey) or using a double‑submit token methodology if ViewState is disabled.
+ • Configure HTTP headers (like HSTS, X-Content-Type-Options, and X-Frame-Options) via web.config or in code to protect against Clickjacking and certain man‑in‑the‑middle attacks.
+ • Remove any default server or version headers that might offer attackers useful information about the application.
+These practices help make the configuration of the web forms application robust and resilient against typical web vulnerabilities.
+
+──────────────────────────────
+Each of these questions and answers focuses on one or more elements from the provided cheat sheet to address core security concerns in .NET development.

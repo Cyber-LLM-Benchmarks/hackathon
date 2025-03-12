@@ -1,0 +1,101 @@
+Below are 10 questions based on the provided cheat sheet, along with detailed answers that explain the core points and rationale behind each aspect.
+
+──────────────────────────────
+1. What are the desired characteristics for a security question, and why is each important?
+
+Answer:
+A security question should possess the following characteristics:
+ • Memorable – Users need to be able to recall the answer even years later, so questions must tap into long-term memories.
+ • Consistent – The answer shouldn’t change over time; if it changes, users may be locked out.
+ • Applicable – The question must be relevant to the user, ensuring that all users can provide an answer.
+ • Confidential – The answer must not be easily guessed or accessible to attackers through other means (like social media).
+ • Specific – It should result in a clear, unambiguous answer.
+Each of these characteristics helps create a security measure that is both user-friendly and resistant to guesswork or social engineering attacks.
+
+──────────────────────────────
+2. Identify and explain three examples of "bad" security questions mentioned in the cheat sheet. What makes them problematic?
+
+Answer:
+The cheat sheet lists several bad examples. For instance:
+ • “When is your date of birth?” – This is problematic because birth dates are often publicly available or easily guessed.
+ • “What is your favourite movie?” – A user’s preferences can change over time, making the answer inconsistent.
+ • “What is your nickname?” – Nicknames might be common or shared on social media, reducing confidentiality.
+These examples are bad because they either result in answers that can be easily discovered by attackers or are prone to change, undermining the security process needed for account recovery or authentication.
+
+──────────────────────────────
+3. What are some examples of "good" security questions recommended in the document, and why are they considered better?
+
+Answer:
+The cheat sheet provides examples of good questions such as:
+ • “What is the name of a college you applied to but didn’t attend?”
+ • “What was the name of the first school you remember attending?”
+ • “Where was the destination of your most memorable school field trip?”
+ • “What was your maths teacher's surname in your 8th year of school?”
+ • “What was the name of your first stuffed toy?”
+ • “What was your driving instructor's first name?”
+These questions are considered better because their answers are usually memorable, consistent over time, and are less likely to be known by an attacker. They are specific enough to reduce ambiguity yet personal enough that the details are less likely to have been shared publicly.
+
+──────────────────────────────
+4. How do user-defined security questions differ from system-defined security questions? Provide their advantages and disadvantages.
+
+Answer:
+User-defined security questions allow users to choose the question from a provided list and supply an answer. This approach is simple to implement since the user provides both components. However, users often choose weak or easily guessed questions/answers.
+In contrast, system-defined security questions are generated based on data that the system already knows about the user (like part of their personal profile). This prevents the user from inadvertently choosing weak questions, but it relies on collecting and securely handling personal data. Additionally, because it uses common personal details, if an attacker gains access to public information (such as social media), the risk of guessability increases.
+Thus, each method has trade-offs regarding complexity, user input quality, and potential exposure to risks.
+
+──────────────────────────────
+5. Why is it generally discouraged to allow users to write their own security questions, and what potential risks does this introduce?
+
+Answer:
+Allowing users to create their own security questions is discouraged because it can lead to a range of weak or easily guessable questions, reducing the overall security. Users might inadvertently select questions that are too generic or even recall hints to their passwords. For instance, a user might use a question whose answer is almost identical to their password or personal reminders. This undermines the intended purpose of the additional layer of security and could allow an attacker, who might know the user’s broader context (or even just the username/email), to easily compromise the account.
+
+──────────────────────────────
+6. What measures can be taken to restrict inappropriate answers for security questions, and why is this important?
+
+Answer:
+To ensure high-quality answers:
+ • Enforce a minimum length for responses. Although this must be balanced (e.g., some valid answers may be short like “Li” for a surname), a minimum length requirement can prevent answers like “a” or “123.”
+ • Use a denylist that checks against obvious weak inputs such as the username, email address, current password, or common strings like “123” or “password.”
+These restrictions are important because they reduce the risk of weak or easily guessable responses, thus increasing the difficulty for an attacker to successfully guess the answer during an account recovery process.
+
+──────────────────────────────
+7. Discuss the purpose of periodically renewing security questions and the associated benefits.
+
+Answer:
+Periodic renewal of security questions—especially if used only for account recovery rather than direct login—serves several purposes:
+ • It ensures that if a user’s remembered responses have changed slightly over time or if they might forget the response, they are given the opportunity to update them.
+ • It maintains the overall security integrity of the account by reducing the window of opportunity for an attacker to use an old, potentially vulnerable answer.
+By prompting users to review and update their security questions when they perform sensitive operations (like a password change), the application increases both security and usability, ensuring that users are less likely to be locked out while still making it harder for unauthorized parties.
+
+──────────────────────────────
+8. Describe the authentication flow that incorporates security questions when MFA is not available. How does this process work?
+
+Answer:
+When using security questions as a supplementary method in the absence of a strong second factor, the typical flow is:
+ 1. The user first provides their username and password.
+ 2. Upon successful verification of these credentials, the system presents one or more security questions.
+ 3. The user answers the question(s), and if all answers match the stored responses, the user is authenticated and logged in.
+If the answers are incorrect, this counts as a failed attempt, and the account lockout counter should be incremented. It is important to treat the failure of security questions as part of the overall authentication process, ensuring that multiple incorrect attempts do not open an avenue for brute-force attacks.
+
+──────────────────────────────
+9. Why should security question answers be stored using a secure hashing algorithm, and what process should be followed when comparing user-provided answers?
+
+Answer:
+Security questions often contain personal information that might be reused across multiple platforms. Just as with passwords, these answers must be stored securely to prevent disclosure in the case of a breach. Using secure hashing algorithms (such as Bcrypt) protects the answers by ensuring that even if the database is compromised, attackers cannot easily retrieve the plain text.
+When comparing answers:
+ • Both the stored answers and the user-provided answers should be converted to a common format, typically converting to lowercase, to ensure that the comparison is case-insensitive.
+ • The user’s normalized answer is hashed and then compared to the stored hash. This method maintains security and avoids leaking sensitive information.
+
+──────────────────────────────
+10. How should applications handle the use of multiple security questions, particularly regarding their update and presentation during the authentication process?
+
+Answer:
+When using multiple security questions, the approach should be as follows:
+ • The user can be asked to answer several questions simultaneously to provide a higher level of assurance, as an attacker would need to know multiple pieces of personal information.
+ • If a single question is chosen from a pool, the system should not change the question until the user has successfully answered it, to prevent attackers from trying various ones to guess an answer.
+ • For updates, the operation should be treated as sensitive; hence the user should be required to re-authenticate by providing their password (or through MFA) before any changes are allowed. This prevents an attacker with temporary access from changing the recovery options.
+This structured approach ensures that multiple layers of verification aid in making unauthorized account access significantly more difficult.
+
+──────────────────────────────
+
+These questions and answers provide a comprehensive understanding of how security questions should be chosen, implemented, and managed—as well as why some practices are discouraged—in order to enhance security without compromising user usability.

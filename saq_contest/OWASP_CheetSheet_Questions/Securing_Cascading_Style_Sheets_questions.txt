@@ -1,0 +1,77 @@
+Below are 10 detailed questions along with their answers based on the provided CSS security cheat sheet information.
+
+──────────────────────────────
+Question 1:
+What is the primary risk of creating a global Cascading Style Sheet (CSS) file that contains styling for multiple roles in a web application?
+
+Answer:
+The main risk associated with a global CSS file is that it can inadvertently expose sensitive information about the application's structure and features. Since global CSS files list selectors (for example, .profileSettings, .addUser, .deleteUser) corresponding to different roles and functionalities, an attacker can examine the file—even without authentication—to gain insights into what features exist and which user roles have what capabilities. This reconnaissance, done by motivated attackers, can facilitate further attacks by mapping CSS selectors to actual application endpoints or actions.
+
+──────────────────────────────
+Question 2:
+How might using descriptive CSS selector names contribute to potential security vulnerabilities?
+
+Answer:
+Using descriptive CSS selector names, such as .profileSettings or .confirmNewPassword, increases code readability, but it also provides hints to attackers about the functionality and structure of the web application. These meaningful names can serve as a roadmap that indicates which parts of the application offer sensitive functionality or are tied to specific user operations. By mapping the selectors to features, an attacker can prioritize which areas to target, making the application more vulnerable to exploitation.
+
+──────────────────────────────
+Question 3:
+Describe how an attacker, like Jim in the provided example, can use CSS files for intelligence gathering.
+
+Answer:
+An attacker can view any publicly available CSS file by utilizing methods such as "View Source" or forced browsing. In our example, an attacker named Jim examines the CSS file and discovers selectors like .editUser, .addUser, and .deleteUser. This immediately informs him of the different roles and functionalities available within the application, even before any active exploitation takes place. With this information, Jim is better positioned to exploit vulnerabilities associated with those features, making his reconnaissance a critical step in his attack strategy.
+
+──────────────────────────────
+Question 4:
+What is the first defensive mechanism suggested for mitigating the risks related to CSS files, and how does it work?
+
+Answer:
+The first recommended defense mechanism is to keep the CSS isolated by access control level. Instead of having one global CSS file for all roles, separate CSS files should be created for each role (e.g., StudentStyling.CSS for students, AdministratorStyling.CSS for administrators). These files should only be accessible to users with the corresponding permissions. This isolation minimizes the risk because even if an attacker tries forced browsing, they would hit access controls that prevent them from obtaining information about features intended for other roles, and any unauthorized access attempts could be logged or alerted.
+
+──────────────────────────────
+Question 5:
+Explain how modifying and obfuscating CSS selectors (Defense Mechanism #2) can enhance security.
+
+Answer:
+Defense Mechanism #2 advocates for modifying CSS selectors to remove identifying information and/or using techniques to obscure names. This includes rewriting selectors that might reveal sensitive page elements (for example, changing #UserPage .Toolbar .addUserButton to a more abstract selector like #page_u header button:first-of-type). Additionally, utilizing build-time and runtime tools that automatically obfuscate CSS class names (resulting in names such as .c001, .c002) makes it far less obvious what the associated functionality is. By doing so, it reduces the chance that an attacker can derive useful information that maps directly to application features, thereby lowering information leakage.
+
+──────────────────────────────
+Question 6:
+List and describe some tools and techniques that can be used to obfuscate CSS selectors and thereby mitigate risks.
+
+Answer:
+Several tools and approaches can help obfuscate CSS selectors:
+ • JSS (CSS in JS): This library offers a minify option that can automatically generate short, non-descriptive class names such as .c001, .c002, making the CSS less informative.
+ • CSS Modules: They offer options such as modules and localIdentName, which allow developer integration of any CSS file with the benefit of obfuscation through hashed class names.
+ • .Net Blazor CSS Isolation: In this framework, CSS is scoped to specific components and results in selectors that include unique identifiers (e.g., button.add[b-3xxtam6d07]).
+ • Popular CSS libraries like Bootstrap and Tailwind are designed with a robust base style that may reduce the need for overly descriptive custom selectors.
+These approaches reduce the exposure of sensitive feature mappings by masking straightforward class names.
+
+──────────────────────────────
+Question 7:
+How might a web application become vulnerable to attacks when users are allowed to author HTML content that includes CSS?
+
+Answer:
+When web applications allow users to submit HTML content that contains CSS, the risk is that an attacker could inject malicious CSS that alters the intended layout or behavior of the page. Such manipulation can lead to security issues, including clickjacking attacks or other interface redirection problems. For example, an attacker could inject CSS that overlays a transparent layer or redirects clicks to malicious sites. This vulnerability was exemplified by a LinkedIn incident where allowed CSS was exploited to trigger unwanted redirections and potentially hijack user interactions.
+
+──────────────────────────────
+Question 8:
+What role does clickjacking play in the context of CSS-based vulnerabilities, as mentioned in the cheat sheet?
+
+Answer:
+Clickjacking is an attack technique where an attacker tricks a user into clicking on something different from what the user perceives, effectively hijacking the user’s click actions. The cheat sheet mentions that malicious use of CSS can facilitate clickjacking. For example, an attacker might use CSS to overlay an invisible button or manipulate the layout such that any click results in navigation to an unintended, often malicious website. This form of attack might be initiated through malicious styling in user-generated HTML content, highlighting the importance of strictly controlling and sanitizing CSS to prevent such scenarios.
+
+──────────────────────────────
+Question 9:
+How does obfuscating CSS selectors help mitigate the risk of information leakage through CSS files?
+
+Answer:
+Obfuscating CSS selectors helps by transforming clear, descriptive names into abstract identifiers that reveal little about the functionality or the structure of the application. When class names are minified or hashed (for example, changing .addUserButton to .c002), it becomes much harder for an attacker to discern what a particular class is meant to do. This reduction in clarity in the CSS file means that even if an attacker downloads or views the CSS, the valuable mapping between style selectors and application features is obscured, thereby limiting the attacker's ability to gather useful intelligence.
+
+──────────────────────────────
+Question 10:
+Discuss how proper access control to CSS files can prevent unauthorized access and reduce potential security risks.
+
+Answer:
+Proper access control involves ensuring that only authorized users can load and view CSS files tailored to their roles. By segregating CSS files based on user roles (e.g., separate files for students, teachers, administrators), the application enforces that only users with the appropriate permissions can access their specific styles. If an unauthorized user (like a student attempting to force access to AdministratorStyling.CSS) tries to access a restricted CSS file, the system should deny access and log the intrusion attempt. This not only prevents sensitive style rules (and the information they contain about application functionality) from reaching unintended audiences but also alerts system administrators about potential reconnaissance or intrusion efforts.
+

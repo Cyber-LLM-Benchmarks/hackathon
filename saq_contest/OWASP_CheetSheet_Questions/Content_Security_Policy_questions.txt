@@ -1,0 +1,123 @@
+Below are 10 detailed questions along with comprehensive answers that cover the key topics from the CSP cheat sheet:
+
+──────────────────────────────
+1. What is a Content Security Policy (CSP) and how does it contribute to a defense in depth strategy for web applications?
+
+Answer:
+A Content Security Policy (CSP) is a security standard that lets web developers define approved sources of content (scripts, images, styles, etc.) that browsers are allowed to load for a given page. It contributes to a defense in depth strategy by adding an extra layer of protection on the client side. Even if a web application has vulnerabilities such as XSS or clickjacking, a properly crafted CSP limits the execution of malicious scripts or other harmful resources. By specifying which domains or script sources are legitimate, CSP reduces the risk of attackers exploiting vulnerabilities on the site.
+
+──────────────────────────────
+2. How does CSP defend against Cross-Site Scripting (XSS) attacks? Provide examples of the various mechanisms.
+
+Answer:
+CSP defends against XSS attacks using several mechanisms:
+• Restricting inline scripts: By disallowing inline JavaScript (like script tags with inline content), CSP stops attackers from injecting and executing malicious code directly in the HTML. For example, a script injection such as 
+  <script>document.body.innerHTML='defaced'</script> 
+will be blocked.
+• Restricting remote scripts: CSP can specify only allowed domains for script sources. This means a script loaded from an unapproved source, e.g., 
+  <script src="https://evil.com/hacked.js"></script> 
+will not be executed.
+• Restricting unsafe JavaScript functions: Functions such as eval() are by default prevented from running, reducing the risk of dynamically executing untrusted code.
+• Restricting form submissions: CSP can limit destinations for form data to prevent phishing-like attacks, stopping a form that submits data to an unauthorized domain.
+• Restricting objects: By forbidding the loading of plugin objects (e.g., flash or Java applets), CSP prevents the execution of older, potentially insecure content.
+These methods collectively reduce the attack surface that could be exploited through XSS.
+
+──────────────────────────────
+3. What are the three primary methods to deliver a Content Security Policy to a website, and what are the pros and cons of each?
+
+Answer:
+The three methods to deliver CSP are:
+• Content-Security-Policy HTTP Header: This is the preferred method and involves sending the CSP policy as part of the HTTP response header. It supports the full feature set (e.g., framing protections, sandboxing, reporting endpoints) and applies uniformly across all pages when configured by the server.
+• Content-Security-Policy-Report-Only Header: This header allows site owners to enforce a policy in "report-only" mode. The browser does not block resource loads but logs any violations. It’s useful for testing a policy before enforcing it but must eventually be replaced by an actively enforced policy.
+• Content-Security-Policy Meta Tag: When headers cannot be configured (for instance, when using a CDN to deliver HTML), CSP can be added as a meta tag in the HTML document. While many controls are still supported, this method does not support certain directives (like frame-ancestors, sandbox, or reporting endpoints), thus offering reduced control compared to headers.
+Each method offers flexibility but using the HTTP header remains the most robust and comprehensive approach.
+
+──────────────────────────────
+4. Explain the differences between nonce-based and hash-based Strict CSP policies. How does the strict-dynamic directive further enhance these policies?
+
+Answer:
+Nonce-based Strict CSP:
+• Uses a one-time random value (nonce) that is generated on each page load.
+• Script tags include a nonce attribute (e.g., <script nonce="randomValue">) that the browser validates against the value in the header.
+• This approach ensures that only scripts that the server deliberately outputs (and that carry the correct nonce) are executed, preventing injection of unauthorized inline scripts.
+
+Hash-based Strict CSP:
+• Instead of using a random nonce, the policy includes a cryptographic hash of the allowed inline script.
+• Any inline script must match the provided hash exactly (even white space matters) to be executed.
+• While secure, it’s less flexible since any change to the script—even a formatting change—will invalidate the hash.
+
+strict-dynamic:
+• When used alongside nonces or hashes, strict-dynamic tells the browser to trust any scripts dynamically loaded by a properly validated script.
+• This means that if a script with a valid nonce/hash creates additional script elements, those dynamically injected scripts are allowed without explicitly listing their source.
+• It simplifies policy management in dynamic application environments by reducing the need to list every allowed source while still maintaining strong security controls.
+
+──────────────────────────────
+5. How does CSP help protect against framing attacks like clickjacking, and what directive is used to manage such scenarios?
+
+Answer:
+CSP protects against framing attacks, including clickjacking, by controlling which domains are permitted to embed the web page. The directive used for this is frame-ancestors. By setting this directive in the CSP header, developers can:
+• Prevent any domain from framing the page (using frame-ancestors 'none').
+• Limit framing to only trusted domains (for example, frame-ancestors 'self' or frame-ancestors trusted.com).
+Unlike the older X-Frame-Options header, frame-ancestors is more flexible and is part of the modern CSP standard, making it a robust solution for preventing unauthorized embedding of site content.
+
+──────────────────────────────
+6. Describe the role of fetch directives in CSP. What are some common fetch directives and their purposes?
+
+Answer:
+Fetch directives in CSP instruct the browser on the allowed sources from which specific types of resources can be loaded. They provide granular control over resource fetching and help block potentially unsafe content from unauthorized origins. Key fetch directives include:
+• default-src: Serves as a fallback for other types of resources if specific directives are not provided.
+• script-src: Specifies allowed sources for JavaScript and can include sub-directives like script-src-elem (controls script element sources) and script-src-attr (controls event handler attributes).
+• style-src: Determines which sources for CSS and styles are permitted, with sub-directives for inline attributes or external resources.
+• img-src: Controls the sources from which images can be loaded.
+• connect-src: Governs allowed sources for AJAX, WebSocket, and other network requests.
+• font-src, media-src, object-src: Restrict fonts, media, and plugin objects respectively.
+By defining these directives, developers ensure that only approved servers and URLs are used to load content, further reducing the attack surface.
+
+──────────────────────────────
+7. What are some limitations of using a meta tag for CSP delivery compared to using HTTP response headers?
+
+Answer:
+When deploying CSP using a meta tag declared within the HTML document, several limitations exist:
+• Not all directives are supported: Some important CSP directives—such as frame-ancestors (used to prevent framing), sandbox (which enforces extra restrictions on content), and reporting endpoints (report-uri or report-to)—are not effective or are completely ignored when placed in a meta tag.
+• Lack of global application: A meta tag applies only to the specific HTML document in which it is declared, whereas CSP headers applied at the server level can be consistently delivered with every HTTP response.
+• Reduced control: With meta tags, security settings might be inadvertently overridden or not enforced if the header cannot be updated dynamically for every response.
+Thus, while meta tags can be useful when the server configuration does not allow header changes (such as with certain CDNs), they are less robust and comprehensive than setting CSP via HTTP headers.
+
+──────────────────────────────
+8. In what scenarios might a basic non-Strict CSP be appropriate, and what does a basic non-Strict policy typically look like?
+
+Answer:
+A basic non-Strict CSP may be suitable for applications where:
+• All resources are hosted on the same domain (i.e., resources are coming from 'self').
+• There is no requirement for inline scripts or eval usage.
+• Form submissions and framing are restricted to the same origin.
+• The primary goal is to prevent common attacks like clickjacking or cross-site form submissions.
+A typical basic non-Strict policy might be:
+ Content-Security-Policy: default-src 'self'; frame-ancestors 'self'; form-action 'self';
+This policy restricts default resource loading to the website's origin and prevents the website from being framed or submitting forms to external domains, thereby reducing the attack surface while simplifying configuration for legacy or less dynamic applications.
+
+──────────────────────────────
+9. What is the purpose of the upgrade-insecure-requests directive in CSP, and how can it benefit websites migrating from HTTP to HTTPS?
+
+Answer:
+The upgrade-insecure-requests CSP directive instructs the browser to automatically upgrade any HTTP requests to HTTPS. Its primary purpose is to help enforce secure connections even when some resource URLs are still specified with the insecure HTTP protocol. This is especially beneficial during migration periods where a website is transitioning fully from HTTP to HTTPS because:
+• It ensures all content is loaded securely, eliminating mixed content warnings.
+• The user’s security is improved by preventing potential man-in-the-middle attacks associated with unsecured connections.
+• It can simplify the migration process as developers do not need to change every referenced URL immediately.
+For example, including the directive as:
+ Content-Security-Policy: upgrade-insecure-requests;
+ensures that any resource loaded via HTTP is automatically requested over a secure HTTPS connection.
+
+──────────────────────────────
+10. How should developers handle inline JavaScript code when implementing CSP, and what best practices can help avoid potential pitfalls?
+
+Answer:
+Under a strict CSP, inline JavaScript is blocked by default to prevent XSS attacks. Therefore, to conform to CSP while still implementing interactive functionality, developers should:
+• Move inline scripts to external JavaScript files. For instance, instead of embedding code directly within a <script> tag, reference an external file (e.g., <script src="app.js"></script>).
+• Avoid inline event handlers (like onclick attributes). Instead, use addEventListener in the external script to attach event handlers.
+• When absolutely necessary to use inline scripts (which is less recommended), consider using nonces (a one-time random value) or hashes to allow only authorized inline scripts.
+• Ensure that any changes to code formatting or whitespace are minimized when using hash-based CSP, as even minor modifications can invalidate the hash.
+By refactoring and externalizing code, developers can maintain site functionality while ensuring that all JavaScript execution complies with the strict controls imposed by CSP.
+
+──────────────────────────────
+These questions and answers cover core concepts from the cheat sheet, discussing both the theory and practical implementation strategies to strengthen web application security using CSP.

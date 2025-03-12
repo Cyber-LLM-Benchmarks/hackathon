@@ -1,0 +1,107 @@
+Below are 10 questions along with detailed answers that cover the key points from the SSRF prevention cheat sheet:
+
+──────────────────────────────
+Question 1: What is Server-Side Request Forgery (SSRF) and what makes it a dangerous attack vector?
+
+Answer:  
+SSRF is an attack where an attacker abuses a vulnerable application to make HTTP (or other protocol) requests on its behalf. This means the attacker can indirectly interact with internal resources, public resources, or even the machine hosting the application. The risk lies in leveraging a trusted server to access systems or services that would normally be shielded from direct attacker access. For instance, a vulnerable web application can be used as a proxy to hit internal APIs, cloud metadata services, or private databases—potentially bypassing network segmentation and exposing sensitive information or credentials. The cheat sheet stresses that SSRF can extend beyond HTTP to protocols like FTP, SMB, SMTP, or schemes like file://, gopher://, etc.
+
+──────────────────────────────
+Question 2: How does the SSRF common flow work, and what are the roles of the attacker, the vulnerable application, and the targeted application?
+
+Answer:  
+The common SSRF flow involves three key parties:
+• Attacker – Constructs a crafted HTTP request containing a payload.
+• VulnerableApplication – Receives and processes the request, then eventually makes a secondary request.
+• TargetedApplication – Receives the request from the vulnerable application and responds.
+
+In this flow, the attacker sends a maliciously crafted request to the VulnerableApplication. Because of inadequate input validation or insufficient network restrictions, the VulnerableApplication then makes a request to the TargetedApplication. The attacker’s payload may instruct the vulnerable server to retrieve sensitive data or perform operations on an internal network resource. This indirect attack path leverages the trust and network privileges of the vulnerable server.
+
+──────────────────────────────
+Question 3: What are the two basic cases of SSRF as described in the cheat sheet, and how do their defenses differ?
+
+Answer:  
+The cheat sheet outlines two distinct cases:
+
+Case 1 – Only Identified and Trusted Applications:  
+Here, the vulnerable application sends requests exclusively to predefined, trusted endpoints (via an allowlist). Defense strategies focus on strict input validation against agreed formats (e.g., strings, IP addresses, domain names) and employing an allowlist to ensure that only specific internal hosts can be contacted. Additionally, network layer protection is implemented (firewall rules, network segmentation) to restrict traffic outside of the allowed communication flow.
+
+Case 2 – Requests to Any External IP Address or Domain Name:  
+In this case, the user controls the destination URL and there is no fixed allowlist because external endpoints change frequently. Defenses rely on a blocklist approach—ensuring that URLs do not resolve to internal or private IP ranges. Extra steps include validating the protocol (only HTTP/HTTPS), enforcing a token-based proof mechanism via parameters, and verifying that any DNS resolution points to public addresses. Since the application could potentially be communicating with untrusted hosts, both application layer and network layer protections must be tailored to prevent unintended interactions with private resources.
+
+──────────────────────────────
+Question 4: Why is input validation critical for SSRF prevention at the application layer, and what types of input should be validated?
+
+Answer:  
+Input validation is the first line of defense against SSRF attacks because it ensures that only correctly formed and expected values are processed. The cheat sheet recommends validating all incoming data that could be used to construct a network request. This includes:
+
+• Strings – Validating simple textual inputs (e.g., user names, tokens) using regex or built-in string functions.
+• IP Addresses – Ensuring the provided input is a valid IPv4 or IPv6 address by using battle-tested libraries (like Apache Commons Validator in Java, IPAddress.TryParse in .NET, or appropriate JavaScript and Ruby libraries) and then comparing against a trusted list (or ensuring it is public for external requests).
+• Domain Names – Checking the format of hostnames using specialized validators (or regex when necessary) and ensuring that DNS resolution does not inadvertently lead to internal targets (addressing issues like DNS pinning).
+
+By validating each type with well-known libraries and carefully crafted patterns, applications can effectively thwart attempts to deceive the system with malformed or malicious inputs.
+
+──────────────────────────────
+Question 5: How can regular expressions be utilized in validating string inputs for SSRF, and what are the limitations of this approach?
+
+Answer:  
+Regular expressions (regex) are a convenient method for validating inputs that follow a well-defined and simple format (for example, alphanumeric tokens, zip codes, or short text fields). The cheat sheet provides an example in Java where a regex pattern is used to allow letters, numbers, spaces, and hyphens in a string of up to 50 characters. This ensures that only expected characters are processed by the application. However, for more complex or nested formats, regex becomes error-prone and difficult to maintain. In such cases, relying on existing libraries or built-in object methods (for instance, using string manipulation functions) is advised. Moreover, regexes must be carefully designed to reject payloads that contain embedded malicious code or characters, which could otherwise be used to bypass input validation controls.
+
+──────────────────────────────
+Question 6: What role does the network layer play in defending against SSRF, and what techniques are recommended by the cheat sheet?
+
+Answer:  
+While the application layer provides direct validation of inputs, the network layer adds an additional defense-in-depth measure. This layer protects against the effects of potential SSRF attacks by restricting the network traffic that a vulnerable application can generate. Recommended techniques include:
+
+• Configuring firewalls—either dedicated hardware or built-in operating system firewalls—to allow only particular outbound routes. This means even if an application processes malicious input, it will not be able to connect to arbitrary hosts.
+• Network segregation—dividing the network into zones so that internal services are not reachable from unsecured segments.
+• Defining explicit firewall rules that block access to known private IP ranges, loopback addresses, or non-approved protocols.
+
+These measures ensure that even if the application is tricked into making an unintended request, the underlying network infrastructure prevents data exfiltration or access to sensitive internal resources.
+
+──────────────────────────────
+Question 7: What specific challenges does DNS resolution present in SSRF prevention, and what strategies does the cheat sheet suggest to mitigate these concerns?
+
+Answer:  
+DNS resolution can be problematic because validating a domain name often leads to a real DNS query. This introduces several vulnerabilities:
+• Disclosing internal DNS queries to external resolvers.
+• Enabling an attacker to perform DNS pinning—where a trusted domain name is manipulated to resolve to an internal IP address.
+• Potential exploitation of vulnerabilities in DNS libraries or the API used.
+
+To mitigate these risks, the cheat sheet suggests:
+
+1. Ensuring that the DNS resolution for your organization’s internal domains happens through a trusted, internal DNS resolver.
+2. Creating an allowlist of internal domain names and monitoring that their resolution does not return private IP addresses unless intended.
+3. Using external DNS queries for public domains, and double-checking that the resolved IPs fall within the expected public ranges.
+4. In the case of external requests, blocking any DNS result that points to internal or local IP ranges.
+
+A Python3 script example is provided to check DNS records for domains in the allowlist and alert if any resolution returns a non-global (private) IP address.
+
+──────────────────────────────
+Question 8: For scenarios where the application can send requests to any external IP address or domain, what additional validations are introduced, particularly regarding tokens and protocol selection?
+
+Answer:  
+In scenarios where users can specify external endpoints, allowlisting is not feasible because the endpoints are dynamic. Instead, a blocklist approach is used coupled with additional layers of validation. The process includes:
+
+• Validating the provided IP or domain using standard libraries to ensure proper format.
+• Blocking internal or private IP ranges by confirming that the input resolves to a public IP address.
+• Ensuring that the input protocol is explicitly allowed by accepting only specific protocols such as HTTP or HTTPS.
+• Introducing a mechanism for proving the legitimacy of the request by the target application. This involves generating a random token (for example, a 20-character alphanumeric string) that must be included in the request via a dedicated parameter. The parameter name itself is subject to its own stringent character restrictions.
+• Requiring that the endpoint only accept HTTP POST requests, adding an extra layer of protocol enforcement.
+
+These measures together ensure that any outgoing requests are not inadvertently targeting internal resources and that the target application can verify that the request is valid and intended.
+
+──────────────────────────────
+Question 9: How does the cheat sheet recommend defending against SSRF in cloud environments, particularly regarding instance metadata services?
+
+Answer:  
+Cloud environments pose a unique challenge when it comes to SSRF, especially because attackers often target instance metadata services (for example, AWS’s Instance Metadata Service). If successfully exploited, these services can reveal sensitive credentials and tokens. To mitigate this risk, the cheat sheet advocates migrating to newer security enhancements—specifically, for AWS, moving from IMDSv1 to IMDSv2. IMDSv2 introduces additional layers of defense such as requiring session tokens for metadata access. This not only reduces the attack surface but also forces any automated request (like an SSRF attack) to properly negotiate or supply a valid token, making it considerably more challenging for attackers to leverage the vulnerability.
+
+──────────────────────────────
+Question 10: What is Semgrep and how can it assist in preventing SSRF vulnerabilities according to the cheat sheet?
+
+Answer:  
+Semgrep is a static analysis tool used to scan codebases for security vulnerabilities and coding mistakes. It provides a set of pre-built rules as well as the ability to write custom rules tailored to specific security standards. In the context of SSRF, Semgrep can help identify potentially dangerous code patterns in applications, such as unvalidated URL parsing, improper handling of redirection, or unsafe network calls that could be exploited. The cheat sheet specifically mentions a Semgrep rule targeting SSRF in Java, which can help developers catch incorrect implementations before they propagate into production. By integrating Semgrep into a continuous integration pipeline, organizations can enforce secure coding practices and reduce the risk of SSRF vulnerabilities during the development and deployment processes.
+
+──────────────────────────────
+These questions and answers together provide an in-depth look at the techniques, challenges, and recommended practices detailed in the SSRF prevention cheat sheet, ensuring a comprehensive understanding of both application and network layer defenses.

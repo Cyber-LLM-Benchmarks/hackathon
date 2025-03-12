@@ -1,0 +1,91 @@
+Below are 10 in-depth questions—with detailed and informative answers—based on the XSS filter evasion cheat sheet content.
+
+─────────────────────────────
+
+1. Question: What is Cross Site Scripting (XSS) and what is the overall purpose of an XSS cheat sheet like the one provided?
+
+Answer:
+Cross Site Scripting (XSS) is a web vulnerability in which an attacker injects malicious scripts into trusted websites. This cheat sheet illustrates many attack methods that inject such scripts despite filtering measures. Its main purpose is to show that input filtering alone is often an incomplete defense and that by using various evasion techniques (such as bypassing filters, obfuscating payloads, and exploiting browser parsing quirks), attackers can trigger script execution in different contexts. Web security professionals and testers use these examples to better understand, detect, and ultimately mitigate XSS vulnerabilities.
+
+─────────────────────────────
+
+2. Question: What is a “polyglot payload” in the context of XSS, and how does the provided XSS Locator (Polyglot) demonstrate evasion across multiple contexts?
+
+Answer:
+A polyglot payload is a carefully crafted bit of code that is valid in multiple contexts—such as HTML, JavaScript strings, URLs, or even attribute values—so that when an attacker injects it, it successfully executes regardless of the filtering method. The XSS Locator (Polyglot) from the cheat sheet is designed to work in several contexts simultaneously. For example, it uses closing tags, mixed quotes, and embedded comment syntax to “break out” of various encapsulation schemes. This payload is resilient against naive filtering because if a defense is tailored for one context (say, HTML or JavaScript only), the obfuscated payload may slip by in another context, triggering execution. This underscores the challenge in writing a filter that covers all injection points.
+
+─────────────────────────────
+
+3. Question: How do malformed HTML tags, as shown with A and IMG examples, aid in bypassing filtering, and what are some specific techniques demonstrated in the cheat sheet?
+
+Answer:
+Malformed HTML tags work by exploiting browsers’ error-recovery mechanisms in parsing HTML. In these cases, the attacker omits quotes or incorrectly formats tag attributes so that the browser “corrects” them, inadvertently creating an event handler or a script tag even if the original code seems benign. For instance, the cheat sheet presents malformed A tags like:
+    <a onmouseover="alert(document.cookie)">xxs link</a>
+By not requiring quotes (or by omitting them intentionally), Chrome automatically fixes the HTML, leaving the event handler intact and then triggering the XSS when the user hovers over the link. Similarly, for IMG tags, creative placement of attributes and even injecting stray quotes and angular brackets have been leveraged to escape from standard URL constraints. This technique makes it challenging for static filters since the actual rendered code differs from the input text.
+
+─────────────────────────────
+
+4. Question: Explain how character encoding (decimal HTML character references, hexadecimal references, etc.) can be used to bypass XSS filters. What benefits does this approach offer?
+
+Answer:
+Using alternate character encodings helps bypass filters that search for specific strings like “javascript:” or “<script>” in their plain form. The cheat sheet demonstrates this with examples that convert characters into decimal HTML entities (e.g., &#106;&#97;&#118;…) or hexadecimal numeric references (e.g., &#x6A;&#x61;&#x76;…). Because many filters only look for word patterns or exact matches of dangerous strings, representing them using varied encodings “hides” the payload. Additionally, omitting semicolons or padding with extraneous digits can trick antivirus or Web Application Firewalls (WAF). The advantage of this method is twofold: (a) it bypasses filters that do not decode all variations fully, and (b) it leverages the browser’s inherent decoding mechanisms to reconstruct the dangerous usually-blocked payload at runtime.
+
+─────────────────────────────
+
+5. Question: In what ways can whitespace characters (such as tabs, newlines, or even a null character) be used to break up an XSS payload, and why is this effective?
+
+Answer:
+Whitespace characters and control characters (including tabs, newlines, and carriage returns) can be inserted into keywords such as “javascript:” to foil filters that seek continuous matches. For example, by embedding a newline (&#x0A;) or carriage return (&#x0D;), an attacker can break up the “javascript:” string in the source code. Browsers, however, will ignore these extra spaces or control characters during execution. This technique effectively “splits up” or obfuscates payload keywords so that pattern-matching filters miss them, while the browser eventually concatenates the payload into a functioning script. Adding a null character (%00) directly or via encoded representation further disrupts simplistic string matches in the filter without stopping the browser from running the script.
+
+─────────────────────────────
+
+6. Question: What is meant by “Protocol Resolution” bypass in the context of script tags and URL links, and how do methods like using double slashes (//) contribute to evading filters?
+
+Answer:
+Protocol resolution bypass refers to the ability of browsers to interpret protocol-relative URLs. When an attacker uses the syntax starting with “//” instead of “http://” or “https://”, the browser automatically considers it as a full URL using the current page’s protocol. Filters might only block explicit usages of the “javascript:” or “http:” strings. The cheat sheet includes this method—for example:
+    <a href="//www.google.com/">XSS</a>
+Filters targeting literal “http://” or “javascript:” may miss this payload. Additionally, this technique saves bytes when space is limited and can bypass regex patterns designed to catch only standard forms of URL protocols.
+
+─────────────────────────────
+
+7. Question: Describe the approach using a local .htc file in XSS injection. How does this vector work, and what conditions are required for it to succeed?
+
+Answer:
+The local htc file vector leverages IE-specific behavior (HTC stands for HTML Components). In this scenario, the attacker includes a reference to an .htc file via a STYLE attribute or behavior declaration. When the browser loads the element, it retrieves the referenced file from the same server. This .htc file can then contain JavaScript code that executes within the context of the page. For example:
+    <XSS STYLE="behavior: url(xss.htc);">
+For this attack to succeed, the .htc file must be hosted on the same domain (or be allowed by the same-origin policy) and the victim must be using a browser that supports HTC behaviors (notably older versions of Internet Explorer). Additionally, the page’s content must allow for non-standard tags like <XSS>, which IE may tolerate as long as it starts with an open angle bracket and a letter.
+
+─────────────────────────────
+
+8. Question: The cheat sheet details several methods to obfuscate URL strings for bypassing WAF rules. What are some of these techniques, and why are they effective against filters that specifically block URLs like “http://www.google.com/”?
+
+Answer:
+To bypass WAF rules that might block explicit URLs (or patterns like “http://”), the cheat sheet presents several obfuscation techniques:
+ • IP Versus Hostname: Using a numeric IP address (e.g., “http://66.102.7.147/”) instead of “www.google.com”.
+ • URL Encoding: Encoding characters with percent-encoding so that the target string is scrambled (e.g., “http://%77%77%77…“).
+ • DWORD, Octal, and Hexadecimal Encodings: Representing the numeric IP parts in alternate numerical bases can further obfuscate the string.
+ • Base64 Encoding: Embedding the malicious script into a data URI that is base64 encoded.
+ • Mixed Encoding: Combining spaces, newlines, and multiple encodings to break signature matches.
+These methods are effective because many WAFs rely on pattern matching of known dangerous strings. By changing the representation while still yielding a valid URL once processed by the browser, they allow the malicious payload to slip past the defenses.
+
+─────────────────────────────
+
+9. Question: How can event handler attributes be exploited to execute XSS payloads, and what range of events (other than onmouseover) are mentioned that could be used in an attack?
+
+Answer:
+Event handler attributes in HTML tags—such as onclick, onload, or onerror—can be manipulated to execute JavaScript when the associated event occurs. Attackers inject code into these attributes to trigger an alert or any other malicious action when a user interacts with the element. The cheat sheet highlights a comprehensive list of events that can be exploited:
+ • onClick, onDblClick, onMouseEnter, onMouseLeave, onMouseOver, onMouseOut, onMouseUp, onMouseDown
+ • onFocus, onBlur, onKeyDown, onKeyPress, onKeyUp
+ • onCopy, onCut, onPaste, onDrag, onDrop, onResize, onUnload, onLoad, among many others.
+Exploiting these events widens the attack surface, allowing the attacker to trigger the malicious code in various user interaction scenarios. The large variety of events means that even if a filter is tuned to catch one common attribute (like onmouseover), there’s still a broad collection of others that might be left unguarded.
+
+─────────────────────────────
+
+10. Question: How does HTTP Parameter Pollution (HPP) enhance an XSS attack, and what is the mechanism behind promoting XSS from reflected attacks to stored attacks as demonstrated in the cheat sheet?
+
+Answer:
+HTTP Parameter Pollution (HPP) is a technique where an attacker injects additional parameters into a URL query string to manipulate how a web application interprets input. In the cheat sheet example, a parameter normally used to set a title is not URL-encoded, while another parameter (e.g., content_type) is trusted and directly inserted into JavaScript. By appending extra parameters—such as “&content_type=1;alert(1)”—an attacker can break the intended benign behavior. The web application might then improperly combine or reassemble the parameters, inadvertently inserting raw JavaScript code into the page. This not only results in immediate script execution (reflected XSS) but can also lead to a stored XSS scenario if the manipulated content is later displayed to multiple users. This attack shows that vulnerabilities might be compounded by inconsistent encoding or validation practices between different parts of an application.
+
+─────────────────────────────
+
+Each of these questions and answers is designed to help a security professional understand both the theoretical concepts and practical implementations behind various XSS injection and evasion techniques.
