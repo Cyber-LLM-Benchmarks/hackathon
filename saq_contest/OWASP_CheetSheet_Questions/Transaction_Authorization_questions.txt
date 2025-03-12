@@ -1,0 +1,70 @@
+Below are 10 questions based on the Transaction Authorization Cheat Sheet along with detailed, informative answers:
+
+─────────────────────────────
+
+1. Q: What exactly is transaction authorization and why is it important in mobile and online applications?  
+A: Transaction authorization is the process by which a user must submit a second factor (or additional verification) to approve a sensitive operation, such as a wire transfer. Its importance lies in adding an extra layer of security to ensure that even if an attacker compromises the primary authentication, they still cannot execute high-risk transactions. This method is applied not only in online banking but in any system requiring protection against unauthorized financial or sensitive operations. It prevents fraud, minimizes risks associated with man-in-the-middle attacks, social engineering, and malware, and helps banks and developers build trust in their security systems.
+
+─────────────────────────────
+
+2. Q: What are some common methods used to implement transaction authorization?  
+A: The cheat sheet lists several widely used methods:
+   • A card with a pre-printed authorization number.
+   • Time-based One-Time Password (TOTP) tokens following the OATH TOTP standard, which generate passwords based on the current time.
+   • OTP delivered via SMS or provided over a phone call.
+   • Digital signatures produced by smart cards or smartphone applications.
+   • Challenge-response tokens (including unconnected card readers or systems that scan and interpret transaction data from the user’s screen).
+Each method involves either a physical device or a mobile application to generate the unique credentials that confirm the user’s consent for a transaction.
+
+─────────────────────────────
+
+3. Q: How does the “What You See Is What You Sign” (WYSIWYS) principle enhance security during transaction authorization?  
+A: The WYSIWYS principle requires that users be able to see all significant transaction details (for example, target account and amount) before they confirm the operation. This ensures the user is fully aware of what they are approving. By mandating that the authorization component displays all critical data accurately, the principle minimizes the risk that an attacker could hide the true nature of the transaction through tampering or social engineering. This clear presentation helps users avoid authorizing fraudulent or unintended transactions and reinforces trust in the authorization process.
+
+─────────────────────────────
+
+4. Q: Why should the change of an authorization token or method be performed using the currently valid credentials or methods?  
+A: Allowing token or method changes to be executed only when authenticated by current credentials prevents attackers from manipulating these settings. For example, if a user wants to change their phone number for receiving SMS codes, confirming the change via an existing authorization mechanism ensures that only a legitimate user can make modifications. This approach also prevents malware from exploiting the change process to downgrade or bypass more secure authorization methods. In essence, it preserves a chain of trust by requiring that any adjustments to the authorization mechanism be authenticated with the presently active secure credential.
+
+─────────────────────────────
+
+5. Q: How can developers distinguish between the authentication process and the transaction authorization process, and why is this separation crucial?  
+A: Developers are advised to use different methods and separate actions for user authentication (logging into the system) versus transaction authorization (confirming a specific high-risk operation). This separation is crucial because if both processes use the same credentials or similar input methods (such as an OTP token), attackers could manipulate them—for instance, by intercepting user input during a man-in-the-middle attack or by tricking the user into entering their credentials twice. By using distinct mechanisms and clear on-screen messaging that specifies what is being signed or approved, developers minimize the risk that a fraudulent transaction is inadvertently authorized while the user is still trying to authenticate.
+
+─────────────────────────────
+
+6. Q: What is the significance of ensuring that each transaction uses unique authorization credentials, and what risks does reusing credentials introduce?  
+A: Using unique authorization credentials for each transaction means that every operation is verified by its distinct challenge-response or OTP mechanism. This uniqueness is critical because it prevents replay attacks where an attacker captures credentials from one transaction and then reuses them to authorize a different operation. If static credentials or one-time inputs are accepted repeatedly, malware or adversaries could intercept them and fraudulently execute transactions without alerting the user. Thus, ensuring uniqueness helps maintain the integrity and security of each individual transaction process.
+
+─────────────────────────────
+
+7. Q: How can enforcing transaction authorization server-side help protect against client-side tampering?  
+A: Enforcing authorization server-side means that all critical decisions—such as validating authorization credentials, verifying transaction data integrity, and executing transactions—occur within the secure environment of the server rather than on the user’s potentially compromised client device. This prevents attackers from altering parameters or injected data during client-server communication. Developers are encouraged to employ practices like a “default deny” model and encryption for data transmitted over the network. By handling verification and execution steps server-side, it becomes much more difficult for attackers to manipulate the authorization process, add or remove parameters, or bypass the integrity checks enforced on the server.
+
+─────────────────────────────
+
+8. Q: What steps can be taken to protect against brute force attacks on transaction authorization credentials?  
+A: Several measures are recommended to prevent brute force attacks:
+   • Implement rate limiting—after a predetermined number of failed attempts, the transaction authorization process should be completely restarted.
+   • Use robust locking mechanisms to invalidate old credentials and enforce new challenges if suspicious activity is detected.
+   • Consider additional authentication measures such as monitoring the number of attempts and triggering alerts on excessive failures.
+By limiting the number of attempts and resetting the authorization process upon repeated failures, the system minimizes the window of opportunity for attackers trying to guess or automate the input of credentials.
+
+─────────────────────────────
+
+9. Q: Why is it critical to control the allowed state transitions during the transaction authorization process?  
+A: Transaction authorization typically involves multiple steps that need to be executed in a strict sequential order—from entering transaction data, initializing the authorization process, confirming details, to finally receiving and validating credentials. Controlling state transitions ensures that attackers or even unintentional user actions do not allow steps to be skipped, repeated, or reordered. This safeguarding is essential to prevent vulnerabilities such as Time of Check to Time of Use (TOCTOU) where modified transaction data might get approved. By strictly managing the flow and ensuring that previous state modifications invalidate future steps if altered, the system upholds the integrity of the authorization process.
+
+─────────────────────────────
+
+10. Q: What practices are recommended to maintain the confidentiality and integrity of transaction data during client-server communications?  
+A: The cheat sheet recommends several key practices:
+   • Encrypt transaction data during all communications between the client and server to protect against eavesdropping and tampering.
+   • Ensure that significant transaction data is first generated and stored server-side and then transmitted to the client or an external authorization component without exposing it to risks of client-side manipulation.
+   • Implement measures to detect any modifications and force a reset of the authorization process if tampering is detected.
+   • By also using cryptographic operations for signing and validation, the system can provide non-repudiation, ensuring that the transaction data remains confidential and exactly as intended from initiation to execution.
+These practices help prevent attackers from injecting fraudulent transaction data and guarantee that users are consistently signing what was originally authorized.
+
+─────────────────────────────
+
+Each question and answer draws on guidelines from the cheat sheet, addressing both functional and non-functional aspects of transaction authorizations. This ensures that developers, banks, and pentesters are equipped with the necessary knowledge to secure sensitive operations effectively.

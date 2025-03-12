@@ -1,0 +1,65 @@
+Below are 10 questions based on the provided error handling cheat sheet, along with detailed explanations for each answer.
+
+──────────────────────────────
+1. Question: What is the significance of error handling in an application’s overall security, and how might unhandled errors assist an attacker during the reconnaissance phase?
+
+Answer: Error handling is a critical component of application security because it manages unforeseen issues without exposing internal details. When errors are unhandled, the application may output sensitive information such as server stack traces, library versions, or configuration details. Attackers exploit this data during the reconnaissance phase—the initial stage of an attack—to gather technical information about the target. By completely or partially disclosing error details, the application inadvertently helps attackers identify potential weaknesses or injection points, thereby increasing the likelihood of a successful attack.
+
+──────────────────────────────
+2. Question: How can unhandled errors inadvertently expose the application’s underlying technology stack? Provide examples from the cheat sheet.
+
+Answer: Unhandled errors can include detailed exception messages and stack traces in their responses, which may reveal specifics about the underlying technology stack. For example, the cheat sheet shows an HTTP 500 error that displays a full Java stack trace, including the exception type (java.lang.NumberFormatException), methods invoked, and even references to Struts2 and Tomcat versions. Similarly, a SQL query error that includes the file path, such as "D:\app\index_new.php," can expose details about the server’s file structure. These details allow attackers to identify outdated frameworks, libraries, or configuration issues that could be exploited.
+
+──────────────────────────────
+3. Question: Why should error messages returned to clients be generic in a REST API context, and what is the recommended approach for logging these errors on the server side?
+
+Answer: In a REST API context, error messages must be generic to prevent leakage of implementation details that could be used by attackers to map the underlying system. Instead of returning detailed error information to the client, the application should log all specifics server side for later investigation. The recommended approach is to return a standard error response (using formats such as RFC 7807’s Problem Details for HTTP APIs) with minimal information in the client response, while all detailed error logs, including stack traces, are stored securely on the server. This practice protects sensitive internal data and reduces the attack surface.
+
+──────────────────────────────
+4. Question: How is global error handling typically configured in a Standard Java web application using the deployment descriptor (web.xml)?
+
+Answer: In a Standard Java web application, global error handling can be configured within the web.xml file by defining an error-page element. The cheat sheet shows an example where any exception (java.lang.Exception) causes the server to redirect to an error page (error.jsp). This error page is strategically designed to log the exception details internally and return a minimal, generic JSON response to the user rather than the full stack trace. This approach ensures that while error details are captured for debugging, the client only receives a controlled message indicating that an error occurred.
+
+──────────────────────────────
+5. Question: Describe how a global error handler is implemented in a SpringMVC/SpringBoot application and the role of the @ExceptionHandler annotation and ProblemDetail class in this context.
+
+Answer: In SpringMVC/SpringBoot applications, a global error handler can be implemented by creating a controller advice class annotated with @RestControllerAdvice. Within this class, methods annotated with @ExceptionHandler are defined to catch any exceptions thrown in the application. Specifically, the provided example intercepts exceptions of type Exception and uses the ProblemDetail class to generate a standardized error response that complies with RFC 7807. The ProblemDetail object encapsulates error information such as the HTTP status and a generic detail message. This method centralizes error handling logic, ensuring that any unexpected errors are handled uniformly while detailed information is logged internally.
+
+──────────────────────────────
+6. Question: How does the ASP.NET Core web application handle unexpected exceptions globally, and what role does the dedicated error-handling API controller play in this setup?
+
+Answer: In ASP.NET Core, global error handling is configured by registering an exception handler middleware (using app.UseExceptionHandler) in the Startup.cs file. The middleware redirects unexpected errors to a designated URL—for example, "/api/error"—which is mapped to a dedicated API Controller. This API Controller (ErrorController) contains an action (Handle) that retrieves the exception from the HTTP context, logs the error if necessary, and returns a generic JSON response with an appropriate HTTP 500 status code and a special header (X-ERROR) indicating an error. This setup ensures that error details are processed and logged internally while the client receives only a uniform, non-detailed error message.
+
+──────────────────────────────
+7. Question: In the ASP.NET Web API configuration described in the cheat sheet, what are the roles of GlobalErrorLogger and GlobalErrorHandler, and how are they registered within the application?
+
+Answer: In an ASP.NET Web API application, two components are involved in global error management: GlobalErrorLogger and GlobalErrorHandler. The GlobalErrorLogger, which extends ExceptionLogger, is responsible solely for logging errors regardless of their type—capturing the exception details so they can be reviewed later. GlobalErrorHandler, extending ExceptionHandler, is tasked with intercepting errors and generating a generic HTTP response, thereby preventing sensitive error details from being sent to the client. These components are registered in the WebApiConfig.cs file using the config.Services.Replace method for IExceptionLogger and IExceptionHandler. Additionally, customErrors are configured in the Web.config file to redirect unhandled errors to a specific error page if necessary.
+
+──────────────────────────────
+8. Question: What advantages does using the RFC 7807 Problem Details standard offer when handling errors in REST API applications?
+
+Answer: RFC 7807 provides a standardized format for error responses in HTTP APIs, known as Problem Details. By using this standard, applications ensure that error responses contain a consistent structure that clients can easily parse and handle. The advantages of using RFC 7807 include:
+  • Standardization: Uniform error response format across different services and platforms.
+  • Clarity: Clearly defined fields for HTTP status codes, error detail messages, and optionally a type or instance URI that helps in debugging and documentation.
+  • Security: Minimizes the risk of exposing sensitive information by only including standardized, non-specific error details in the client response.
+The ProblemDetail class in Spring, for example, makes it easy for developers to create compliant responses with minimal effort.
+
+──────────────────────────────
+9. Question: Why is it important to differentiate between client-side (4xx) and server-side (5xx) errors in your error handling strategy?
+
+Answer: Differentiating between client-side (4xx) and server-side (5xx) errors is important because it clarifies the source of the issue and informs the appropriate response actions. Client-side errors indicate that the client made an invalid request (for example, missing authentication or malformed syntax) and typically require the client to fix the issue. Server-side errors, on the other hand, indicate that the server encountered an unexpected condition or configuration issue that prevents it from processing the request. Knowing the difference helps in:
+  • Debugging: Developers can focus on server configuration or logic errors when 5xx errors appear.
+  • Logging: Accurate error categorization improves monitoring and trending analyses for system reliability.
+  • User Experience: Properly signaling maintenance or internal error issues can help manage user expectations without exposing sensitive information.
+
+──────────────────────────────
+10. Question: What considerations should be made when configuring middleware order in the context of global error handling, particularly in frameworks like ASP.NET Core?
+
+Answer: Middleware order is critical in frameworks such as ASP.NET Core because the order in which middlewares are registered directly affects how HTTP requests and responses are processed. Key considerations include:
+  • Early Error Handling: The global error handler should be configured early in the middleware pipeline (using app.UseExceptionHandler) to catch exceptions thrown by subsequent components.
+  • Custom Formatting: It is important to register additional middleware (like UseStatusCodePages) after setting up the global error handler to customize the content type and format of error responses.
+  • Routing and MVC: Ensure that routing or MVC middlewares are placed after the error handling middleware so that any exceptions in routing, model binding, or controller execution are caught.
+This careful ordering guarantees that any unexpected exceptions are intercepted by the global error handling logic before any default handling takes place, thereby ensuring that error details are properly logged and insecure messages are not propagated to the client.
+
+──────────────────────────────
+These 10 questions and answers cover core topics such as the importance of proper error handling, examples for various technology stacks, adherence to security practices, and best practices for configuring error responses in different web development frameworks.

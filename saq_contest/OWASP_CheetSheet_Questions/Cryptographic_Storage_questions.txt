@@ -1,0 +1,83 @@
+Below are 10 questions based on the Cryptographic Storage Cheat Sheet, along with detailed and informative answers:
+
+──────────────────────────────
+1. Question: Why should passwords never be stored using reversible encryption, and what should be used instead?
+
+Answer:
+Passwords should not be stored using reversible encryption because if an attacker gains access to the storage, they could decrypt the passwords, leading to a loss of confidentiality. Instead, secure password hashing algorithms should be used. Hashing is a one-way process that converts the password into a fixed-size string that cannot easily be reversed. The cheat sheet advises referring to the Password Storage Cheat Sheet for further guidance, which typically recommends using algorithms like bcrypt, scrypt, or Argon2. These algorithms are designed to be computationally expensive, slowing down brute-force attacks and increasing overall security.
+
+──────────────────────────────
+2. Question: How does the overall system architectural design influence cryptographic storage, and why is threat modeling a key initial step?
+
+Answer:
+The overall architecture of an application greatly impacts where and how cryptographic protections can be applied. During the design phase, it's crucial to consider the threat model—that is, who you are trying to protect data against (e.g., physical attackers, remote hackers, insiders). This assessment informs which encryption layers (application, database, filesystem, hardware) should be used based on the type of threat. For instance, hardware-level encryption might protect against physical theft, but it won’t safeguard data in a remote compromise. Additionally, choosing dedicated secret or key management systems can add a layer of security, albeit at the cost of increased complexity and administrative overhead. Understanding the system’s architecture alongside its threat model allows for proper alignment of security controls.
+
+──────────────────────────────
+3. Question: What are the recommended cipher modes for symmetric encryption, and why are authenticated modes preferred?
+
+Answer:
+For symmetric encryption, the cheat sheet recommends using AES (with at least a 128-bit key, ideally 256-bit) combined with a secure mode of operation. Authenticated modes such as GCM (Galois/Counter Mode) and CCM (Counter with CBC-MAC) are recommended because they provide not only confidentiality (encryption) but also integrity and authenticity guarantees. If authenticated modes are not available, modes like CTR (Counter) or CBC (Cipher Block Chaining) should be used, but they lack inherent authentication. In those cases, additional measures such as the Encrypt-then-MAC approach must be implemented to verify that the encrypted data has not been tampered with. Authenticated modes help protect against common attacks like tampering and replay attacks, making them the preferred choice for secure communications and data storage.
+
+──────────────────────────────
+4. Question: What considerations should be taken into account when selecting cryptographic algorithms, both symmetric and asymmetric?
+
+Answer:
+When selecting cryptographic algorithms, a variety of factors must be considered:
+• Key Size: Ensure the key size is sufficient for the required level of security. For instance, AES requires at least a 128-bit key, with 256 bits being preferable.
+• Known Attacks: Consider any known vulnerabilities or weaknesses in an algorithm.
+• Maturity: Established algorithms like AES and Curve25519 for elliptic curve cryptography (or RSA with keys ≥2048 bits) have undergone thorough scrutiny.
+• Approval and Standards: Preference should be given to algorithms that have met industry standards or third-party validations (like NIST’s algorithm validation program).
+• Performance: Evaluate both the encryption and decryption performance.
+• Library Quality: Select algorithms that have reliable library implementations.
+• Portability: Consider how widely the algorithm is supported.
+Regulatory requirements (e.g., FIPS 140-2 or PCI DSS) may also influence the choice of algorithm. This comprehensive evaluation ensures that the selected cryptographic solution meets both security and operational requirements.
+
+──────────────────────────────
+5. Question: What is the importance of minimising the storage of sensitive information, and what practices should be followed regarding such data?
+
+Answer:
+Minimising the storage of sensitive information is a fundamental security principle. The best defense is to avoid holding on to sensitive data (like credit card details) if it is not necessary, thereby reducing the potential attack surface. By not storing highly sensitive data, you limit the impact of a data breach and ease compliance with industry regulations such as PCI DSS. When sensitive information must be stored, its storage should be subject to strict controls including encryption, access control, and frequent auditing. Additionally, using techniques such as tokenization to replace sensitive data with non-sensitive placeholders can further mitigate risk.
+
+──────────────────────────────
+6. Question: What are the formal key management processes recommended by the cheat sheet, and why is proactive key rotation important?
+
+Answer:
+The cheat sheet underscores the importance of having formal key management processes that cover:
+• Key Generation: Keys should be generated using a cryptographically secure function and must be unpredictable.
+• Key Storage: Encryption keys should be stored securely (ideally using mechanisms like HSMs, key vaults, or secure APIs).
+• Distribution: Keys must be securely distributed to authorized parties only.
+• Deployment: Keys should be safely deployed to application servers, ensuring they are not hard-coded in source files.
+• Rotation and Decommissioning: Keys must be periodically rotated—based on criteria such as time elapsed (cryptoperiod), volume of data encrypted, or possible exposure—and securely decommissioned.
+Proactive key rotation is important because it limits the amount of data encrypted with a single key, reducing the risk that the key can be exploited if compromised. Planning and testing key rotation processes in advance ensure that key updates can be executed quickly and without data loss or service interruption in the event of an incident.
+
+──────────────────────────────
+7. Question: Why is secure random number generation critical in cryptographic processes, and what practices and functions are recommended?
+
+Answer:
+Secure random number generation is critical as it underpins many security mechanisms such as the generation of encryption keys, IVs (initialization vectors), session IDs, CSRF tokens, and password reset tokens. Weak or predictable randomness can lead to compromised encryption or exploitation of session management, making systems vulnerable to attack. The cheat sheet differentiates between general-purpose pseudo-random number generators (PRNGs) that are fast but insecure, and Cryptographically Secure Pseudo-Random Number Generators (CSPRNGs) that are designed to generate high-entropy random data suitable for security-sensitive operations. Developers are encouraged to use language-specific secure functions such as:
+• C: getrandom(2)
+• Java: SecureRandom or UUID.randomUUID() for randomness
+• PHP: random_bytes(), random_int(), or openssl_random_pseudo_bytes()
+• .NET/C#: RandomNumberGenerator
+And similar functions in other languages. Using these functions helps ensure that random values are not easily predictable, bolstering the overall security of the cryptographic system.
+
+──────────────────────────────
+8. Question: How should encryption keys be stored to reduce the risk of unauthorized access, and what is meant by the “separation of keys and data”?
+
+Answer:
+Encryption keys should be stored securely and not alongside the encrypted data they protect. The cheat sheet recommends using secure storage mechanisms such as Hardware Security Modules (HSMs), key vaults (like Amazon KMS or Azure Key Vault), or external secrets management systems (e.g., HashiCorp Vault). The “separation of keys and data” is a crucial concept which suggests that the keys should be stored in a different location from the encrypted data. For example, if encrypted data is kept in a database, the corresponding keys might be stored on a separate filesystem or system. This separation ensures that even if an attacker gains access to one component (say through a SQL injection), they will not necessarily gain access to both the keys and the data, thereby reducing the risk of complete data compromise.
+
+──────────────────────────────
+9. Question: What is envelope encryption and how does it enhance key security when storing encrypted keys?
+
+Answer:
+Envelope encryption involves using two separate keys: the Data Encryption Key (DEK) and the Key Encryption Key (KEK). The DEK is used to encrypt the actual data, while the KEK encrypts the DEK. This layering enhances key security by ensuring that the encrypted DEK can be safely stored alongside the data, while the KEK, stored separately, protects against unauthorized decryption. If an attacker manages to access the DEK, they would still need to compromise the KEK stored elsewhere to decrypt the data. This method is especially beneficial in systems where the storage mechanisms for data and keys can be separated, allowing for a strong defence in depth approach. Additionally, if a KEK is derived using a key derivation function (KDF) from user input (like a passphrase), it permits changes to the KEK without re-encrypting all data, providing both flexibility and enhanced security.
+
+──────────────────────────────
+10. Question: Why is it generally advised against developing custom cryptographic algorithms, and what is the impact of doing so?
+
+Answer:
+Developing custom cryptographic algorithms is strongly discouraged because cryptography is a highly specialized field that has undergone extensive research and analysis over many years. Custom algorithms are prone to overlooked vulnerabilities, mistakes in implementation, or subtle weaknesses that skilled attackers can exploit. Leveraging established and well-vetted cryptographic standards (such as AES, Curve25519, or RSA with sufficiently large keys) exposes your system to far less risk, as these standards have been peer-reviewed and rigorously tested in real-world applications. Implementing a custom solution not only increases complexity but also makes it difficult to achieve the levels of security required for cryptographic operations, often rendering the system significantly less secure than intended.
+
+──────────────────────────────
+These questions and their detailed answers address both the theoretical foundations and practical implications of cryptographic storage practices as outlined in the cheat sheet.

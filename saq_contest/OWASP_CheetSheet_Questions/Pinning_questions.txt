@@ -1,0 +1,94 @@
+Below are 10 questions along with detailed answers based on the provided Pinning Cheat Sheet.
+
+──────────────────────────────
+1. Question: What is certificate or public key pinning, and why is it used?
+
+Answer:  
+Certificate or public key pinning is the process of associating a specific host with an expected X509 certificate or public key. Once a certificate or public key is known for a host, that credential is “pinned” so that subsequent communications verify the remote endpoint against this pre-cached value. By doing so, the system ensures that even if a certificate chain validation passes (for example, because a malicious actor obtained a fraudulent certificate or manipulated the client’s trust store), the connection is rejected unless the pinned certificate or public key is used. This methodology is employed to defend against man-in-the-middle (MITM) attacks and thwart instances where certificate trust might be misused.
+
+──────────────────────────────
+2. Question: What are the two main attack vectors that pinning is designed to mitigate?
+
+Answer:  
+Pinning is primarily aimed at countering two forms of malicious attacks:  
+• First, an attacker may acquire a rogue digital certificate from a trusted Certificate Authority (CA) that appears to belong to the victim site.  
+• Second, an attacker might inject a dangerous CA into the client’s trust store.  
+In both cases, the attacker is able to undermine a secure TLS/SSL connection by exploiting the reliance on the certificate authority’s trust model. By using pinning, an application verifies that it is communicating with the correct host—based on an expected certificate or public key—regardless of what appears in the certificate chain, thereby enhancing security.
+
+──────────────────────────────
+3. Question: When should a pin be added and what are the various strategies for doing so?
+
+Answer:  
+There are several strategies for when to add a pin to an application. Ideally, a host’s certificate or public key should be preloaded at development time (“out-of-band”) as this prevents potential tampering during runtime. Other methods include:  
+• Trust On First Use (TOFU): The pin is added the first time the certificate is encountered, but this method carries risk if the initial connection is compromised.  
+• Dynamically updating the pin in real time via an unpinned channel, which poses challenges in ensuring the pin’s secure update.  
+Preloading is preferred because it ensures that the attacker does not have an opportunity to “taint” the pin through a compromised initial connection.
+
+──────────────────────────────
+4. Question: Under what circumstances should pinning be avoided?
+
+Answer:  
+Pinning should be avoided in several scenarios where the risks or practical difficulties outweigh the potential benefits. These include:  
+• When you do not control both the client and the server side of the connection.  
+• When you cannot ensure a secure update mechanism for the pinset.  
+• If updating the pinset requires disruptive procedures (for instance, forcing an application redeployment).  
+• When the certificate key pair is unpredictable before it is put into service.  
+• In non-native mobile applications where application updates may be harder to control.  
+Pinning adds rigid requirements—if the certificate rotates frequently or if the infrastructure is managed by external parties, the risk of service outages may become unacceptable.
+
+──────────────────────────────
+5. Question: How do you decide what specifically should be pinned (e.g., root CA, intermediate CA, or leaf certificate)?
+
+Answer:  
+Deciding what to pin involves trade-offs between security and resiliency. The cheat sheet outlines these options:  
+• Pinned Root CA: This option is generally not recommended because it implies trusting every certificate issued under the root CA, including any intermediate CAs, and increases risk.  
+• Pinned Intermediate CA: This reduces risk compared to pinning the root, but it still indirectly trusts all certificates issued by that CA (or its subordinate CAs).  
+• Pinned Leaf Certificate: This is considered the most secure since it enforces trust only in the specific certificate for the remote host. However, it must include a reliable backup (such as an intermediate CA or a pinset with alternates) to mitigate issues like certificate rotation.  
+The decision should balance the need for strict authentication against the operational risk of service outages if a pinned certificate is prematurely rotated.
+
+──────────────────────────────
+6. Question: What are the benefits and downsides of pinning a certificate compared to pinning a public key?
+
+Answer:  
+Benefits of certificate pinning include its simplicity in implementation since the certificate can be fetched out-of-band (via tools like openssl or through corporate channels) and directly compared at runtime. It is more straightforward in platforms like Cocoa/CocoaTouch and OpenSSL.  
+Downsides: If the site rotates its certificate—often on a regular basis—an application that pins the certificate must be updated frequently, potentially leading to connectivity outages.  
+In contrast, public key pinning is more flexible because it decouples the identity verification from the specific certificate. The public key can often be calculated before a certificate is issued, and the same key can cover subsequent certificate renewals. However, public key pinning is more technically challenging since it requires extraction of the key from the certificate. It may involve additional complexities on some platforms (for example, iOS Cocoa frameworks might not expose simple APIs for key extraction), and some providers might generate a new key upon renewal, complicating the process.
+
+──────────────────────────────
+7. Question: What role does hashing play in pinning, and what are its major advantages and disadvantages?
+
+Answer:  
+Hash pinning involves storing a hash (or digest) of the certificate or public key rather than the entire object.  
+Advantages:  
+• The hash is small, fixed-length, and easy to store or compare.  
+• Many libraries or native APIs already provide certificate or public key fingerprinting, which can simplify the implementation.  
+Disadvantages:  
+• A hash does not contain any contextual or meta information such as public key parameters, the algorithm used, or the associated OID. This additional context might be important in some security scenarios.  
+• If a site rotates its certificate frequently, the application must be updated to accommodate a new hash, potentially leading to connectivity issues.
+
+──────────────────────────────
+8. Question: How is pinning implemented differently across platforms like Android, iOS, .Net, OpenSSL, and Electron?
+
+Answer:  
+Each platform has its own recommended methodology and tooling for implementing pinning:
+• Android: The preferred method since Android N is using Network Security Configuration through a declarative XML file, which supports pinset definitions. Alternative approaches include programmatically setting pins through libraries like OkHTTP.
+• iOS: Apple recommends configuring pinning via the App Transport Security settings (using Info.plist) and verifying the certificate’s or public key’s trust through native APIs. Libraries such as TrustKit simplify adding SSL pinning.
+• .Net: Pinning can be accomplished by leveraging the ServicePointManager API which handles certificate validation callbacks, allowing developers to perform pinning checks within the .Net runtime.
+• OpenSSL: There are two common approaches—either by supplying a custom verify_callback function during the TLS handshake or by retrieving the peer’s certificate via SSL_get_peer_certificate after connection establishment. Whichever method is chosen, additional checks (such as ensuring the certificate is non-null and SSL_get_verify_result returns X509_V_OK) must be performed.
+• Electron: For applications built with Electron, developers can use libraries like electron-ssl-pinning that offer simple APIs for pinning implementation. Alternatively, Electron provides methods such as ses.setCertificateVerifyProc to facilitate custom certificate validation routines.
+Each platform-specific guideline emphasizes not implementing custom pinning from scratch due to high risks of errors; instead, well-established libraries and system mechanisms are recommended.
+
+──────────────────────────────
+9. Question: Why is it generally advised not to implement pinning from scratch, and what risks does a custom implementation pose?
+
+Answer:  
+Implementing pinning from scratch is generally discouraged because even minor mistakes can lead to significant security vulnerabilities. A custom implementation might overlook critical details of the certificate-validation process, mismanage error handling or fail to consider subtle aspects of TLS security. Given that established libraries and frameworks have been thoroughly tested and reviewed, using them minimizes risks such as accidentally accepting an invalid certificate or mishandling edge cases (for example, a server not supplying a certificate). Complexities in extracting and verifying public key parameters and the potential for errors in converting or comparing certificate details add further risk, potentially opening the door for adversaries to bypass security controls.
+
+──────────────────────────────
+10. Question: How should organizations handle exceptions, such as when working with interception proxies, while maintaining effective pinning practices?
+
+Answer:  
+In environments where interception proxies are part of an organization’s security strategy (often seen with egress filtering or Data Loss Prevention systems), organizations may encounter what the cheat sheet terms as “good” bad actors. These proxies intentionally intercept and inspect traffic in a controlled manner. However, doing so can break end-to-end security if these interception proxies are allowed as exceptions in the pinning configuration. The guidance is clear: Do not allow-list the proxies proactively because this undermines the integrity of pinning. Instead, if exceptions must be implemented, add the public key of the interception proxy to the pinset only after receiving proper risk acceptance instructions from the relevant authority in the organization. This controlled update ensures that the security team is aware of and has expressly approved the relaxation of standard pinning policies without inadvertently opening a vulnerability.
+
+──────────────────────────────
+These questions and detailed answers summarize essential aspects of certificate and public key pinning as described in the Pinning Cheat Sheet and provide actionable insights for implementing secure communications in facing potential security threats.

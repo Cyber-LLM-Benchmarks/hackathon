@@ -1,0 +1,85 @@
+Below are 10 questions along with detailed, informative answers based on the Mass Assignment Cheat Sheet provided.
+
+──────────────────────────────
+Question 1: What is a mass assignment vulnerability and how does it occur?
+
+Answer:  
+A mass assignment vulnerability occurs when a software framework automatically binds HTTP request parameters to variables or objects in the program code. This convenience feature, intended to simplify development, can be exploited by attackers who include additional parameters in their request that were not intended by the developer. The framework then unwittingly sets or overwrites fields—including sensitive ones—within the domain object. By doing so, an attacker can inject values into fields such as administrative flags, ultimately leading to unauthorized actions under the guise of a valid request.
+
+──────────────────────────────
+Question 2: What are some alternative names for mass assignment vulnerabilities depending on the framework or language used?
+
+Answer:  
+Depending on the framework or programming language, the mass assignment vulnerability is known by several alternative names:
+• In Ruby on Rails and NodeJS, it is commonly referred to as “Mass Assignment.”  
+• In frameworks like Spring MVC and ASP NET MVC, it is known as “Autobinding.”  
+• In PHP, a similar vulnerability is sometimes called “Object Injection.”  
+These terms all relate to the same underlying issue of automatic binding of object properties from external data.
+
+──────────────────────────────
+Question 3: Can you describe the provided example scenario that illustrates how mass assignment could be exploited?
+
+Answer:  
+In the provided example, a form exists for editing a user’s account information. The HTML form captures fields such as “userid,” “password,” and “email.” The form is bound to a User object that also contains a sensitive field “isAdmin.” In a normal request, only the expected fields are included (userid, password, email). However, an attacker can modify the POST request to include an extra parameter “isAdmin=true.” Because the framework automatically binds all incoming parameters to the corresponding object properties, the attacker succeeds in setting the “isAdmin” field, therefore assigning administrative rights to their profile or actions without authorization.
+
+──────────────────────────────
+Question 4: Under what conditions does mass assignment become exploitable?
+
+Answer:  
+Mass assignment vulnerabilities become exploitable when several conditions are met:
+• The attacker can guess common sensitive fields.  
+• The attacker has access to the source code or can deduce information about the model properties, including sensitive fields.  
+• The domain object is instantiated using an empty (default) constructor, allowing all fields to be set without specific initialization logic.  
+If these points are present, an attacker can easily include malicious parameters in their request to manipulate sensitive properties in the object.
+
+──────────────────────────────
+Question 5: What happened in the GitHub case study related to mass assignment, and why was it significant?
+
+Answer:  
+In the GitHub case study from 2012, an attacker exploited a mass assignment vulnerability to manipulate user account information. Specifically, the vulnerability allowed the attacker to upload their public key to any organization’s account, which in turn gave them the ability to make changes to those organizations’ repositories. This breach underscored the significance of preventing mass assignment vulnerabilities. The case illustrates how a simple misconfiguration can have far-reaching security implications, as the unauthorized manipulation of sensitive object fields can result in elevated privileges and potentially widespread system compromise.
+
+──────────────────────────────
+Question 6: What are some general strategies for mitigating mass assignment vulnerabilities?
+
+Answer:  
+To mitigate mass assignment vulnerabilities, developers can use several strategies:
+• Allow-list (or white-list) only the specific, non-sensitive fields that should be bound using the incoming request. This ensures that other properties—even if provided by the attacker—are ignored.
+• Block-list (or guard) the sensitive fields that should not be modified through mass assignment.
+• Implement Data Transfer Objects (DTOs) to separate the user input from the domain model. A DTO only includes properties that are meant to be editable by the user, reducing the risk of inadvertently exposing sensitive fields.
+Each of these strategies prevents untrusted data from being automatically bound to fields not intended for user modification.
+
+──────────────────────────────
+Question 7: How does the use of Data Transfer Objects (DTOs) help prevent mass assignment vulnerabilities?
+
+Answer:  
+Data Transfer Objects (DTOs) help prevent mass assignment vulnerabilities by acting as an intermediary between the raw user input and the domain model. Instead of binding request parameters directly to domain objects that may contain sensitive attributes (such as “isAdmin”), developers define a DTO that includes only the fields that should be modified. For example, the UserRegistrationFormDTO in the cheat sheet omits the “isAdmin” field. This approach minimizes the attack surface since only the allowed properties are bound from the request, ensuring that sensitive data contained in the domain model remains untouched.
+
+──────────────────────────────
+Question 8: How can developers prevent mass assignment vulnerabilities in Spring MVC using allow-listing and block-listing?
+
+Answer:  
+In Spring MVC, developers can prevent mass assignment vulnerabilities by configuring allowed fields (allow-listing) or by configuring disallowed fields (block-listing) in the WebDataBinder:
+• Allow-listing: Within a controller’s @InitBinder method, you can call binder.setAllowedFields(...) with an array of field names that are safe to bind. For example, only “userid”, “password”, and “email” are allowed, so any other parameter like “isAdmin” will be ignored.
+• Block-listing: Conversely, you can use binder.setDisallowedFields(...) to specify sensitive fields that must never be bound, such as “isAdmin”.  
+Both approaches restrict the automatic binding process to only the desired object fields, mitigating the risk of attackers manipulating sensitive fields.
+
+──────────────────────────────
+Question 9: What methods does NodeJS with Mongoose offer to control mass assignment, and how do they work?
+
+Answer:  
+Mongoose in NodeJS provides two popular strategies for controlling mass assignment:
+• Allow-listing: Developers define a static array (e.g., User.userCreateSafeFields) that lists the fields allowed for binding. When instantiating a new User object, the underscore.js library’s _.pick function can be used to select only the approved properties from req.body, ensuring that any additional dangerous properties are omitted.
+• Block-listing: Using a plugin such as mongoose-mass-assign, developers can mark specific fields with a protection flag (e.g., protect: true). When mass assignment methods like massAssign() are invoked—either on a new instance or during an update—these fields are automatically excluded, preventing unauthorized modifications.
+Both approaches provide a controlled mechanism to filter out undesired properties coming from user input.
+
+──────────────────────────────
+Question 10: How is mass assignment handled in PHP’s Laravel Eloquent ORM, and what are the differences between using allow-listing and block-listing in this context?
+
+Answer:  
+In Laravel’s Eloquent ORM, mass assignment is controlled by specifying either a list of fillable (allow-list) attributes or guarded (block-list) attributes within the model:
+• Allow-listing: By defining the protected $fillable array with specific field names, only those attributes can be mass assigned. For example, specifying ['userid', 'password', 'email'] ensures that only these fields are considered when performing mass assignment, and any additional field, such as “isAdmin,” is ignored.
+• Block-listing: Alternatively, by defining the protected $guarded array with attributes that should never be mass assigned, such as ['isAdmin'], the framework will block any attempt to modify these fields through mass assignment.
+The choice between fillable and guarded depends on the developer’s preference and application complexity. Allow-listing is generally preferred because it makes explicit which fields are safe to update, reducing the likelihood that a sensitive field is inadvertently exposed to manipulation.
+
+──────────────────────────────
+These questions and answers cover the core concepts, examples, and prevention techniques surrounding mass assignment vulnerabilities as described in the cheat sheet.

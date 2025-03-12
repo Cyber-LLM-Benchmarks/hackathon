@@ -1,0 +1,112 @@
+Below are 10 detailed questions along with comprehensive answers based on the provided Django REST Framework (DRF) security cheat sheet.
+
+──────────────────────────────
+1. Question: What is a view in Django and what role does it play in a web application?
+
+Answer:  
+A view in Django is a Python class or function that processes a web request and returns a corresponding web response. This response might be simple HTTP, an HTML template rendered with context data, or even an HTTP redirect that points the user to another page. Essentially, the view acts as a bridge between the data (models) and the presentation (templates or HTTP responses), processing the request data, applying business logic, and issuing the appropriate response. This makes views one of the key components in the MVC (Model-View-Controller, or Model-Template-View in Django's paradigm) framework of Django web applications.
+
+──────────────────────────────
+2. Question: How are Django REST Framework (DRF) settings configured and why are they important from a security perspective?
+
+Answer:  
+DRF is configured using a namespace called REST_FRAMEWORK within your project's settings.py file. This configuration is crucial from a security standpoint because it defines default behavior for authentication, permissions, throttling, and pagination:
+
+• DEFAULT_AUTHENTICATION_CLASSES specifies which authentication mechanism is used by default to identify the user (e.g., session-based or basic authentication).
+
+• DEFAULT_PERMISSION_CLASSES determines who can access endpoints. The default setting allows any user (AllowAny), which means that secure applications must update this to restrict access unless the endpoint is meant to be public.
+
+• DEFAULT_THROTTLE_CLASSES controls rate limiting; by default, throttling is disabled, leaving endpoints potentially vulnerable to DoS (Denial of Service) attacks if not properly configured.
+
+• DEFAULT_PAGINATION_CLASS is important because without proper pagination, endpoints may return large datasets, increasing the risk of DoS attacks.
+
+These settings collectively shape how DRF interacts with user requests and protect against unauthorized access, brute force, and other common security vulnerabilities.
+
+──────────────────────────────
+3. Question: What is the DEFAULT_AUTHENTICATION_CLASSES setting in DRF and what are its implications for API security?
+
+Answer:  
+The DEFAULT_AUTHENTICATION_CLASSES setting in DRF is a list that dictates which authentication backends are used by default for every API endpoint in your application. These classes are used to authenticate users and provide access control based on the request.user and request.auth attributes. By default, DRF includes:
+ • rest_framework.authentication.SessionAuthentication (for session-based authentication), and
+ • rest_framework.authentication.BasicAuthentication (for basic HTTP authentication).
+
+Implications for security include:
+ • Ensuring only authenticated requests are processed for non-public endpoints.
+ • Mitigating unauthenticated access risks, especially when the default remains appropriate for the project’s needs.
+Developers should be cautious when overriding these defaults in specific views and only do so if they fully understand the security ramifications, ensuring that every non-public endpoint requires proper authentication credentials.
+
+──────────────────────────────
+4. Question: What is the function of DEFAULT_PERMISSION_CLASSES in DRF and why should developers be cautious with its default setting?
+
+Answer:  
+DEFAULT_PERMISSION_CLASSES in DRF is a list defining the baseline access control (authorization) policies for API endpoints. By default, DRF uses rest_framework.permissions.AllowAny, which means that every view is accessible to anyone unless explicitly restricted. This default setting can be dangerous if left unchanged because it may unintentionally expose sensitive endpoints to unauthorized users. 
+
+Developers should:
+ • Change the default to a more restrictive permission class that meets the project’s security requirements.
+ • Explicitly set proper permissions (for example, IsAuthenticated, IsAdminUser, or custom permission classes) on sensitive API endpoints.
+This practice ensures that only authorized users can access or manipulate data, significantly reducing the risk of unauthorized access or data breaches.
+
+──────────────────────────────
+5. Question: Why is pagination in Django REST Framework important for security, and what risks are involved if it’s not implemented?
+
+Answer:  
+Pagination in Django REST Framework is a mechanism to break down large datasets into manageable chunks when a client requests data. Pagination is important for security because:
+ • It helps mitigate Denial of Service (DoS) attacks. Without pagination, an endpoint might return an extremely large dataset, which can overwhelm the server and lead to performance degradation.
+ • It prevents excessive data exposure by limiting the amount of data delivered in a single API response.
+By default, pagination is disabled in Django, and if developers do not explicitly enable and configure DEFAULT_PAGINATION_CLASS, the application might be vulnerable to overload attacks and inefficient resource utilization. Proper pagination settings ensure that both the server and clients can handle responses securely and efficiently.
+
+──────────────────────────────
+6. Question: What is the OWASP API Security Top 10, and how does it help secure DRF APIs?
+
+Answer:  
+The OWASP API Security Top 10 is a list of the most critical API security risks as identified by the Open Web Application Security Project. The list provides a prioritized set of threats, ranging from Broken Object Level Authorization to Insufficient Logging & Monitoring. For DRF APIs, following the OWASP API Security Top 10 helps by:
+ • Guiding developers to address the most impactful threats first.
+ • Providing tangible recommendations (e.g., checking object-level permissions, configuring proper authentication and throttling mechanisms) to counter each risk.
+ • Offering a structured approach to reviewing and improving API security by starting with critical issues like Broken Object Level Authorization, Broken User Authentication, and Progressive mitigations for issues like injection and security misconfiguration.
+This framework ensures that any security efforts cover the core vulnerabilities, thereby strengthening the overall security posture of an API.
+
+──────────────────────────────
+7. Question: What is Broken Object Level Authorization (API1:2019) in DRF, and how can it be mitigated?
+
+Answer:  
+Broken Object Level Authorization occurs when an API does not properly check if a given user has the right to access a specific object. In DRF, this is commonly addressed by using the method .check_object_permissions() within the get_object() method. An example of this mitigation in code is:
+
+  def get_object(self):
+    obj = get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
+    self.check_object_permissions(self.request, obj)
+    return obj
+
+By calling self.check_object_permissions(), the view verifies whether the requesting user has proper access rights for the object being retrieved or modified. It is critical not to override get_object() without ensuring that this permission check takes place; otherwise, unauthorized access to data might occur.
+
+──────────────────────────────
+8. Question: How should developers address Broken User Authentication (API2:2019) in Django REST Framework?
+
+Answer:  
+Broken User Authentication refers to the vulnerabilities that arise when an API does not adequately verify user credentials. To address this in DRF:
+ • Developers must configure DEFAULT_AUTHENTICATION_CLASSES with robust authentication mechanisms suitable for the project—typically including session authentication and token-based systems.
+ • Ensure that every non-public endpoint has appropriate authentication enabled, meaning custom overrides for authentication_classes should only be implemented when developers fully understand the security implications.
+ • Avoid inadvertently disabling authentication for sensitive endpoints, as this increases the risk of unauthorized access. By following these practices, you can secure user authentication and reduce the likelihood of exploitation.
+
+──────────────────────────────
+9. Question: What measures should be taken in DRF to protect against injection attacks, including SQL injection and remote code execution?
+
+Answer:  
+Injection attacks are severe vulnerabilities where malicious input is interpreted as code or query logic. In Django REST Framework:
+ • SQL Injection: Always use parameterized queries rather than concatenating user-supplied input into SQL commands. Avoid dangerous methods such as raw(), extra(), or direct usage of cursor.execute() with unsanitized input.
+ • Remote Code Execution (RCE): When handling files or input data, especially via YAML, always employ safer loading techniques—for example, using Loader=yaml.SafeLoader instead of yaml.load(). Avoid executing user-supplied code via eval(), exec(), or similar methods.
+ • Additionally, refrain from processing data that could come from untrusted sources without proper validation and sanitization.
+By consciously following these guidelines, developers greatly reduce the possibility of injection-related vulnerabilities in their APIs.
+
+──────────────────────────────
+10. Question: Which SAST (Static Analysis Security Testing) tools are recommended for Python and Django projects, and what benefits do they offer?
+
+Answer:  
+There are several well-regarded open-source static analysis tools designed to help identify security vulnerabilities in Python and Django projects. These include:
+
+ • Bandit: This tool scans Python files by building an Abstract Syntax Tree (AST) and runs security-focused plugins. It was initially developed within the OpenStack Security Project and remains effective at catching common issues such as insecure coding patterns.
+ • Semgrep: A fast and versatile static analysis engine, Semgrep uses customizable rules to search for security vulnerabilities, code standard violations, and bugs. It is versatile, allowing users to write or use pre-existing rules, including several rules specific to Django security.
+ • PyCharm Security: A plugin integrated with PyCharm or other JetBrains IDEs, this tool provides in-IDE scanning for security vulnerabilities specific to Python, including around 40 different checks, some tailored for Django applications.
+Using these tools can significantly improve code quality and security by catching potential vulnerabilities early in the development process, enforcing secure coding practices, and helping maintain an audit trail of security issues over time.
+
+──────────────────────────────
+These questions and detailed answers provide a comprehensive overview of important DRF security considerations, addressing both framework-specific configurations and general API security best practices as outlined in the cheat sheet.

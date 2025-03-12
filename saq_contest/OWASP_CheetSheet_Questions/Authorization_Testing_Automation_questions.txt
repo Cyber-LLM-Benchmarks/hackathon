@@ -1,0 +1,104 @@
+Below are 10 detailed questions based on the provided cheat sheet information, each accompanied by an in-depth answer.
+
+──────────────────────────────
+1. Question: What is the primary motivation for automating authorization testing as described in the cheat sheet?
+
+Answer:  
+The primary motivation is to ensure that any changes or new releases to an application do not unintentionally conflict with the predefined authorization rules. Since modifications to an application may affect feature access control, automating tests based on an authorization matrix helps detect authorization definition or implementation issues early. This way, developers are immediately made aware if any service no longer respects the expected Access Allowed or Access Denied responses, reducing the risk of security gaps introduced by new features or changes.
+
+──────────────────────────────
+2. Question: What are the key dimensions of an authorization and how may a third dimension enhance authorization control?
+
+Answer:  
+An authorization typically consists of two main dimensions:  
+• Feature – representing the specific functionality or service being accessed.  
+• Logical Role – representing the user or entity role that is granted or restricted access.
+
+A third dimension, termed “Data,” can be added to enable a finer granularity of control, incorporating business data-level filters. Incorporating the data dimension allows the system to enforce not just role-based but context/data-specific permissions ensuring that even when a role is allowed to access a feature, the access might be further constrained based on relevant business data parameters.
+
+──────────────────────────────
+3. Question: How is the authorization matrix organized in the example provided and why is a pivot format advantageous?
+
+Answer:  
+The authorization matrix is organized as an XML document that is intended to serve both as a human-readable file and as an input for automated integration tests. The pivot format separates the concerns into main sections such as “roles,” “services,” and “services-testing”:
+• The roles node provides a list and description of the available logical roles.
+• The services node lists the exposed services, their endpoints, HTTP methods, expected response codes, and which roles are permitted to access them.
+• The services-testing node supplies test payloads for services that require specific input data.
+Using a pivot format such as XML weaves together structured data that is easy for both humans to understand and for programs to process. It supports easy updates of the matrix, hierarchical defining of authorizations, and decouples the logical definition of permissions from the underlying application technology.
+
+──────────────────────────────
+4. Question: What are the three main sections (or nodes) defined in the XML authorization matrix, and what is the purpose of each?
+
+Answer:  
+The three main sections are:  
+• Roles: This section lists and describes the possible logical roles (for example, ANONYMOUS, BASIC, ADMIN) and provides explanatory details on the authorization levels.
+• Services: In this section, each available service of the system is defined with attributes such as service name, URI, HTTP method, and expected response codes for allowed/denied access. It also lists the specific roles that are permitted to access each service.
+• Services-testing: This section provides auxiliary test payloads for each service. It defines the necessary content type and sample data (e.g., a JSON payload for CreateMessage) to be used during integration tests.
+This organization allows automated tests to extract both the rules of access and the corresponding input data to rigorously verify that the application adheres to the defined authorization policy.
+
+──────────────────────────────
+5. Question: How do integration tests use the authorization matrix to evaluate the application’s access control?
+
+Answer:  
+Integration tests use the matrix as a central source for determining both the allowed and denied authorization behaviors. The tests parse the XML file using technologies like JAXB, transforming the XML into a Java object model. For each service defined in the matrix, the tests do the following:
+• They retrieve the test payload (if applicable) from the “services-testing” node.
+• They simulate a call to the service using an HTTP method (GET, PUT, DELETE) and verify the returned response code against what is expected based on the service’s configuration.
+• They use various “Points Of View” corresponding to different logical roles (ANONYMOUS, BASIC, ADMIN) to simulate different user perspectives. A JWT token may be generated to represent each role.
+• The integration test method “executeTestWithPointOfView” iterates through all service definitions and for each call verifies if the access allowed or denied is as per the matrix.
+This approach ensures that any mismatch between the expected behavior from the matrix and the implemented functionality is caught immediately.
+
+──────────────────────────────
+6. Question: What is the significance of the “executeTestWithPointOfView” method in the testing process?
+
+Answer:  
+The “executeTestWithPointOfView” method plays a pivotal role by abstracting the logic to test every defined service for a specific logical role (or POV). Its significance lies in:
+• Iterating through all service definitions in the authorization matrix and executing calls sequentially.
+• Retrieving and applying appropriate test payloads for each service.
+• Evaluating whether the service returns the expected HTTP response—200 for allowed access and 403 for denied access—based on whether the role is authorized.
+• Accumulating any errors if the actual result does not match the expected result, allowing test reports to indicate which services are misconfigured or improperly implemented.
+Thus, it centralizes and standardizes the mechanism to verify authorization behavior for different roles.
+
+──────────────────────────────
+7. Question: How does the integration test ensure that the response codes from service calls conform to the authorization matrix definitions?
+
+Answer:  
+The integration test compares the actual HTTP response code returned by a service call with the expected response codes defined in the XML authorization matrix. For each service:
+• If the service returns the “allowed” code (typically 200), and the logical role used for the test is not included in the list of permitted roles for that service, an error is recorded.
+• Conversely, if the service returns a “denied” code (typically 403), but the role is actually defined as having permissions for that service, an error is also recorded.
+• If the response code does not match either the expected allowed or denied code, that too is flagged as an unexpected outcome.
+This logic ensures that the operational behavior of the service is consistent with the matrix-defined access control rules.
+
+──────────────────────────────
+8. Question: In the context of the provided test class, how is an HTTP request constructed and executed for testing a REST service?
+
+Answer:  
+The test class utilizes Apache’s HTTP Client to build and execute HTTP requests:
+• Based on the HTTP method defined (GET, PUT, DELETE), the code creates the appropriate request object (e.g., HttpGet, HttpPut, HttpDelete).
+• The URL is built by concatenating a base URL with the service’s URI from the matrix. Placeholders like “{messageId}” are replaced with test values (for example, “1”).
+• For methods like PUT that support a payload, the relevant Content-Type header is set, and the payload is attached as a string entity.
+• An “Authorization” header is included to simulate the token-based access for different roles.
+• Finally, the request is executed using a CloseableHttpClient instance, and the returned HTTP response code is extracted for comparison with the expected values.
+This approach modularizes how REST API endpoints are called and tested, making it adaptable for various testing scenarios.
+
+──────────────────────────────
+9. Question: What security measures are taken when parsing and unmarshalling the XML authorization matrix file?
+
+Answer:  
+When parsing and unmarshalling the XML file using JAXB, several security precautions are taken to prevent vulnerabilities:
+• The SAXParserFactory is configured to disable external entity processing by setting features such as "http://xml.org/sax/features/external-general-entities", "http://xml.org/sax/features/external-parameter-entities" and "http://apache.org/xml/features/nonvalidating/load-external-dtd" to false.  
+• These settings mitigate XML External Entity (XXE) attacks by ensuring that the parser does not process any external DTD or entities that could be used maliciously.
+• By securing the XML parsing process, the integration test ensures that it safely handles the input file without exposing the system to potential XML-based attacks, maintaining the integrity of the testing process.
+
+──────────────────────────────
+10. Question: How does the XSL stylesheet enhance the auditing and review process of the authorization matrix?
+
+Answer:  
+The XSL stylesheet is used to transform the XML-based authorization matrix into an HTML page that is visually formatted for better readability and assessment. Its contributions include:
+• It iterates over the roles and services defined in the XML file to generate a styled HTML report.
+• Different styles (e.g., Bootstrap alerts with varying classes such as alert-warning, alert-info, alert-danger) are applied to each role and service, highlighting the degree of access (with ADMIN often receiving a warning style, BASIC a neutral style, and others a more critical style). This visual differentiation helps reviewers quickly focus on roles that have higher privileges.
+• The organization into tables and lists makes it easier to audit which roles are allowed for each service, ensuring that the policy is visibly consistent with the intended authorization rules.
+• This on-the-fly rendered representation is ideal for discussions, audits, or reviews by security teams, as it provides a clear and human-understandable snapshot of the access management policy.
+  
+──────────────────────────────
+
+Each question and its corresponding answer provide a comprehensive understanding of the authorization testing automation strategy, how the authorization matrix is defined, and how the integration tests and rendering tools contribute to maintaining secure and well-defined access controls within an application.
