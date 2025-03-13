@@ -33,25 +33,26 @@ The core concept of the challenge is to discover the toughest cybersecurity ques
 - **Question**: A concise, specific query that touches on one or more cybersecurity sub-domains.  
 - **Correct Answer**: A short, fact-checked answer.  
 - **Reference/Explanation**: Source or rationale that proves correctness (e.g., link to official documentation, academic papers, CVE details, etc.).  
-- **Evaluation Outcome**: Evidence of how ChatGPT fails or partially fails to answer (e.g., a screenshot, logs, or summary of ChatGPT’s incorrect response).  
+- **Evaluation Outcome**: Evidence of how ChatGPT fails or partially fails to answer (e.g., a screenshot, text, or log of ChatGPT’s incorrect response).  
 
 ### Awards  
 
 - **Grand Prize**: Best “Stumper” question overall (the question that confuses ChatGPT the most).  
-- **Category Prizes**: Best question in each cybersecurity domain (e.g., Best Cloud Security Stumper).  
+- **Category Prizes**: Best question in each cybersecurity domain (e.g., Best Cloud Security Stumper).
+- **WTF Prize**: Most confusing question (a valid question that produces the most non-sensical and/or funny response from ChatGPT).
 
 ---
 
 ## B) Reasoning Models Contest  
 
 **Goal** 
-– We currently have a high-quality Multiple-Choice Question and Answer (MCQA) dataset, including explanations for each answer. This contest aims to verify whether these explanations are correct.  
+- We have curated a Multiple Choice Question and Answer (MCQA) dataset of cybersecurity questions, answers, and potential explanations. The task is to find any discrepancies between the question, answers, and explanations. Be careful: you're competing against ChatGPT!
 
 ### Contest Theme  
 **“Explanations Under Fire—Fact-Check the MCQA”**  
 
 ### Contest Description  
-Each participant becomes a **“Security Explanation Detective”**, investigating the reasoning behind multiple-choice answers. Participants earn points for accurate, detailed validations—and for catching mistakes that could confuse learners or mislead an LLM.  
+Each participant becomes a **“Security Explanation Detective”**, investigating the reasoning behind multiple-choice answers. Participants earn points for accurate, detailed validations—and for catching mistakes in the questions, answers, and explanations that can lead to a confusing question, invalid answer, or non-sensical explanation. 
 
 ### Deliverables  
 
@@ -64,7 +65,8 @@ Each participant becomes a **“Security Explanation Detective”**, investigati
 ### Awards  
 
 - **Most Insightful Detective**: Individual or team recognized for the best “catch” of a subtle or critical error.  
-- **Speedy Validator**: Team that completes their review block both accurately and fastest.  
+- **Speedy Validator**: Team that completes their review block both accurately and fastest.
+- **Beating ChatGPT**: Team with the most accurate score that beats ChatGPT.
 
 ---
 
@@ -72,7 +74,7 @@ Each participant becomes a **“Security Explanation Detective”**, investigati
 
 **Goal** 
 
-– Synthetically create benchmarks reflecting tasks currently performed by cybersecurity professionals. Each dataset should contain **<100 examples** for a task that participants find particularly challenging.  
+– Create benchmarks reflecting tasks currently performed by cybersecurity professionals. Each dataset should contain **20-100 examples** for a task that participants find particularly challenging.  
 
 ### Example  
 The **CTI-ATE** benchmark dataset focuses on **Attack Technique Extraction**. The task involves identifying specific attack patterns from a given threat behavior description and mapping them to the corresponding **MITRE ATT&CK** technique IDs. The **Micro-F1 score** is used as the evaluation metric for this task.  
@@ -81,11 +83,11 @@ The **CTI-ATE** benchmark dataset focuses on **Attack Technique Extraction**. Th
 **“Nightmare Tasks No More—Building Mini-Benchmarks for Cybersecurity Pain Points”**  
 
 ### Contest Description  
-Participants are encouraged to identify repetitive, dull, or particularly vexing tasks they face in their daily cybersecurity work (e.g., mapping threat reports to MITRE ATT&CK techniques, analyzing repetitive log data, summarizing lengthy compliance documents, etc.). They then synthetically create a small (**<100 examples**) benchmark dataset replicating that task’s typical input-output structure.  
+Participants are encouraged to identify repetitive, dull, or particularly vexing tasks they face in their daily cybersecurity work (e.g., mapping threat reports to MITRE ATT&CK techniques, analyzing repetitive log data, summarizing lengthy compliance documents, etc.). They then synthetically create a small (**20-100 examples**) benchmark dataset replicating that task’s typical input-output structure.  
 
 ### Deliverables  
 
-- **Dataset**: <100 well-structured examples.  
+- **Dataset**: 20-100 well-structured examples.  
 - **Task Description**: A concise explanation of why the task is painful in real-world scenarios, how the data was created, and any domain references (e.g., MITRE IDs, compliance standards, typical logs).  
 - **Suggested Evaluation**: Guidance on how an LLM or other AI tool might be evaluated on these examples (including the chosen metric and any special scoring criteria).  
 
